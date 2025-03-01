@@ -14,7 +14,6 @@ services:
       DATABASE_URL: postgres://postgres:password@postgres:5432/mydatabase
     volumes:
       - ./app:/app
-      - /app/node_modules
 
   postgres:
     image: postgres:15

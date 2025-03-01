@@ -9,9 +9,9 @@ const props = defineProps<{
 // useFetch を使って /api/articles?page=1 から記事データを取得
 const { data, error } = await useFetch<ArticlesResponse>(`/api/articles?page=${props.page}`);
 console.log(data);
-if (error.value) {
+if (error.value || !data.value) {
   console.error(error.value);
-  throw createError(error.value);
+  throw createError(error.value?.data);
 }
 </script>
 
@@ -30,6 +30,7 @@ if (error.value) {
       </a>
     </template>
   </div>
+  <ArticleListPagination :page="props.page" :allArticlesCount="data!.allArticlesCount" />
 </template>
 
 <style scoped>

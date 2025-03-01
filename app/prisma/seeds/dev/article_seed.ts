@@ -3,30 +3,21 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  // article テーブルに複数の記事を一括登録
+  // Array.from を使って 100 件分のダミーデータを生成する
+  const articlesData = Array.from({ length: 100 }, (_, i) => {
+    const index = i + 1
+    return {
+      title: `Article ${index}`,
+      thumbnail_url: `https://picsum.photos/300/200?random=${index}`,
+      main_image_url: `https://picsum.photos/600/400?random=${index}`,
+      body: `This is the content of article ${index}. Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
+    }
+  })
+
+  // 生成した100件分の記事データを一括登録
   const result = await prisma.article.createMany({
-    data: [
-      {
-        title: "First Article",
-        thumbnail_url: "https://picsum.photos/300/200",
-        main_image_url: "https://picsum.photos/600/400",
-        body: "This is the first sample article for our blog.",
-      },
-      {
-        title: "Second Article",
-        thumbnail_url: "https://picsum.photos/300/200",
-        main_image_url: "https://picsum.photos/600/400",
-        body: "This is the second sample article for our blog.",
-      },
-      {
-        title: "Third Article",
-        thumbnail_url: "https://picsum.photos/300/200",
-        main_image_url: "https://picsum.photos/600/400",
-        body: "This is the third sample article for our blog.",
-      }
-    ],
-    // 重複するレコードがあればスキップ
-    skipDuplicates: true,
+    data: articlesData,
+    skipDuplicates: true, // 重複するレコードがあればスキップ
   })
 
   console.log(`Seeded ${result.count} articles.`)

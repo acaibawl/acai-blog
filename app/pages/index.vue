@@ -1,39 +1,34 @@
+<script setup lang="ts">
+import dayjs from 'dayjs';
+import type { Article } from '@prisma/client';
+
+// useFetch を使って /api/articles?page=1 から記事データを取得
+const { data, error } = await useFetch<Article[]>("/api/articles?page=1");
+
+if (error.value) {
+  console.error(error.value);
+  throw createError(error.value);
+}
+</script>
+
 <template>
-      <div class="grid">
-        <a href="#">
-          <div class="card">
-            <img src="https://picsum.photos/id/1/300/200" alt="記事1">
-            <div class="card-content">
-              <div class="card-title">記事タイトル1</div>
-            </div>
+  <div class="grid">
+    <template v-for="article in data" :key="article.id">
+      <a href="#">
+        <div class="card">
+          <img v-if="article.thumbnail_url" :src="article.thumbnail_url" :alt="article.title">
+          <img v-else src="https://picsum.photos/id/1/300/200" :alt="article.title"><!-- デフォルトサムネ画像 -->
+          <div class="card-content">
+            <div class="card-title">{{ article.title }}</div>
           </div>
-        </a>
-
-        <a href="#">
-          <div class="card">
-            <img src="https://picsum.photos/id/45/300/200" alt="記事2">
-            <div class="card-content">
-              <div class="card-title">記事タイトル2</div>
-            </div>
-          </div>
-        </a>
-
-        <a href="#">
-          <div class="card">
-            <img src="https://picsum.photos/id/237/300/200" alt="記事3">
-            <div class="card-content">
-              <div class="card-title">記事タイトル3</div>
-            </div>
-          </div>
-        </a>
-      </div>
-
+          <time :datetime="dayjs(article.created_at).format('YYYY-MM-DD')">{{ new Date(article.created_at).toLocaleDateString("ja-JP")}}</time>
+        </div>
+      </a>
+    </template>
+  </div>
 </template>
 
 <style scoped>
-
-
-
 /* タイトル */
 h1 {
   text-align: center;
@@ -81,10 +76,14 @@ h1 {
   margin-bottom: 10px;
 }
 
+.card time {
+  display: block;
+  text-align: right;
+  color: #bfbfbf;;
+}
+
 a {
   text-decoration: none !important;
   color: #000000;
 }
-
-
 </style>

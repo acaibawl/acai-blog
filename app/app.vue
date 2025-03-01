@@ -49,5 +49,6 @@ main {
 footer {
   text-align: center;
   margin-top: 20px;
+  padding-bottom: 20px;
 }
 </style>

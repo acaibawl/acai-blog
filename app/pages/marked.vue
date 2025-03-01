@@ -2,6 +2,11 @@
 import { marked } from 'marked';
 
 const title = "記事のタイトルが入ります";
+
+useHead({
+    title: title,
+})
+
 const date = "2025年2月28日";
 const category = "Webデザイン";
 const mainImageUrl = "https://picsum.photos/800/400";

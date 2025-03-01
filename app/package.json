@@ -17,7 +17,9 @@
     "vue-router": "latest"
   },
   "devDependencies": {
+    "modern-css-reset": "^1.4.0",
     "prisma": "^6.4.1",
-    "modern-css-reset": "^1.4.0"
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
   }
 }

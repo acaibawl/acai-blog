@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "acai-blog",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,11 +11,13 @@
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
+    "marked": "^15.0.7",
     "nuxt": "^3.15.4",
     "vue": "latest",
     "vue-router": "latest"
   },
   "devDependencies": {
-    "prisma": "^6.4.1"
+    "prisma": "^6.4.1",
+    "modern-css-reset": "^1.4.0"
   }
 }

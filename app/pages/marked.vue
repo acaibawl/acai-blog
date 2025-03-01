@@ -9,7 +9,7 @@ useHead({
 
 const date = "2025年2月28日";
 const category = "Webデザイン";
-const mainImageUrl = "https://picsum.photos/800/400";
+const mainImageUrl = "https://picsum.photos/600/400";
 marked.setOptions({ breaks: true });
 const articleBody = marked.parse(`
 ### 見出し1
@@ -67,7 +67,7 @@ article h2 {
 }
 
 article .mainImage {
-    width: 100%;
+    width: 600px;
     border-radius: 5px;
     margin: 10px 0;
 }

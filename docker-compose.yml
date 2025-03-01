@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  nuxt:
+    build:
+      context: .
+      dockerfile: containers/node/Dockerfile  # ここでDockerfileのパスを指定
+    container_name: nuxt3-container
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://postgres:password@postgres:5432/mydatabase
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-container
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

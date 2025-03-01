@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import type { ArticlesResponse } from '~/types/ArticlesResponse';
 
 const prisma = new PrismaClient()
 
@@ -20,7 +21,12 @@ export default defineEventHandler(async (event) => {
       orderBy: { created_at: 'desc' }
     })
     
-    return articles;
+    return {
+      articles,
+      page: pageNumber,
+      pageSize,
+      allArticlesCount: await prisma.article.count()
+    } as ArticlesResponse;
   } catch (error) {
     return { error: '記事の取得に失敗しました。', details: error }
   }

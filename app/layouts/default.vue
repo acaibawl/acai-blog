@@ -19,7 +19,7 @@ useHead({
   </header>
   <main>
     <div class="container">
-      <NuxtPage />
+      <slot />
     </div>
   </main>
   <footer>
@@ -39,6 +39,11 @@ body {
   margin: 0 auto;
 }
 
+main {
+  padding: 20px;
+  background-color: #f0ebeb;
+}
+
 header {
   text-align: center;
   padding: 10px 0px;
@@ -47,11 +52,6 @@ header {
 header a {
   text-decoration: none;
   color: #333;
-}
-
-main {
-  padding: 20px;
-  background-color: #f0ebeb;
 }
 
 footer {

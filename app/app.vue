@@ -15,7 +15,7 @@ useHead({
 
 <template>
   <header>
-    <h1>浅井ブログ</h1>
+    <h1><NuxtLink to="/">浅井ブログ</NuxtLink></h1>
   </header>
   <main>
     <div class="container">
@@ -28,17 +28,25 @@ useHead({
 </template>
 
 <style>
+body {
+  font-family: "Noto Sans JP", serif;
+}
+
 /* 全体のスタイル */
 /* コンテナ */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  font-family: Arial, sans-serif;
 }
 
 header {
   text-align: center;
   padding: 10px 0px;
+}
+
+header a {
+  text-decoration: none;
+  color: #333;
 }
 
 main {

@@ -11,8 +11,9 @@ RUN npm install
 # 必要なパッケージのインストール
 RUN apk update \
     && apk add --no-cache bash
+
 # アプリケーションファイルをコピー
-COPY . .
+COPY app/ .
 
 # ポート3000を開放
 EXPOSE 3000

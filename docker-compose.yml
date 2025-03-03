@@ -4,7 +4,7 @@ services:
   nuxt:
     build:
       context: .
-      dockerfile: containers/node/Dockerfile  # ここでDockerfileのパスを指定
+      dockerfile: containers/node/Dockerfile.dev  # ここでDockerfileのパスを指定
     container_name: nuxt3-container
     ports:
       - "3000:3000"

@@ -8,7 +8,6 @@ const props = defineProps<{
 
 // useFetch を使って /api/articles?page=1 から記事データを取得
 const { data, error } = await useFetch<ArticlesResponse>(`/api/articles?page=${props.page}`);
-console.log(data);
 if (error.value || !data.value) {
   console.error(error.value);
   throw createError(error.value?.data);
@@ -18,7 +17,7 @@ if (error.value || !data.value) {
 <template>
   <div class="grid">
     <template v-for="article in data?.articles" :key="article.id">
-      <a href="#">
+      <a :href="`/articles/${article.id}`">
         <div class="card">
           <img v-if="article.thumbnail_url" :src="article.thumbnail_url" :alt="article.title">
           <img v-else src="https://picsum.photos/id/1/300/200" :alt="article.title"><!-- デフォルトサムネ画像 -->

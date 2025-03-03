@@ -12,6 +12,10 @@ if (error.value || !data.value) {
   console.error(error.value);
   throw createError(error.value?.data);
 }
+
+const origin = useRequestURL().origin;
+console.log(origin);
+const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png`;
 </script>
 
 <template>
@@ -19,8 +23,7 @@ if (error.value || !data.value) {
     <template v-for="article in data?.articles" :key="article.id">
       <a :href="`/articles/${article.id}`">
         <div class="card">
-          <img v-if="article.thumbnail_url" :src="article.thumbnail_url" :alt="article.title">
-          <img v-else src="https://picsum.photos/id/1/300/200" :alt="article.title"><!-- デフォルトサムネ画像 -->
+          <img :src="thumbnailUrl(article.thumbnail_url)" :alt="article.title">
           <div class="card-content">
             <div class="card-title">{{ article.title }}</div>
           </div>

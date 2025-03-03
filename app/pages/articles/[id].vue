@@ -14,7 +14,8 @@ if (error.value) {
 useHead({
     title: data.value?.title,
 })
-const mainImageUrl = data.value?.main_image_url || "https://picsum.photos/600/400";
+
+const mainImageUrl = data.value?.main_image_url || `${origin}/no-image.png`;
 marked.setOptions({ breaks: true });
 </script>
 

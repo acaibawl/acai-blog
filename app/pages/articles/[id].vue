@@ -11,8 +11,23 @@ if (error.value) {
     console.error(error.value);
     throw createError(error.value?.data);
 }
+
+const runtimeConfig = useRuntimeConfig();
+const ogImage = data.value?.main_image_url || `${runtimeConfig.public.baseUrl}/no-image.png`;
+const description = data.value?.body.slice(0, 30);
 useHead({
-    title: data.value?.title,
+  title: data.value?.title,
+  meta: [
+    { hid: 'description', name: 'description', content: description },
+    { hid: 'og:title', property: 'og:title', content: data.value?.title },
+    { hid: 'og:description', property: 'og:description', content: description },
+    { hid: 'og:url', property: 'og:url', content: `${runtimeConfig.public.baseUrl}/articles/${route.params.id}` },
+    { hid: 'og:image', property: 'og:image', content: ogImage },
+    { hid: 'twitter:card', name: 'twitter:card', content: 'summary_large_image' },
+    { hid: 'twitter:title', name: 'twitter:title', content: data.value?.title },
+    { hid: 'twitter:description', name: 'twitter:description', content: description },
+    { hid: 'twitter:image', name: 'twitter:image', content:  ogImage}
+  ],
 })
 
 const origin = useRequestURL().origin;

@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   css: ['modern-css-reset'],
+  modules: ['nuxt-gtag'],
   app: {
     head: {
       link: [
@@ -37,5 +38,8 @@ export default defineNuxtConfig({
     public: {
       baseUrl: ""
     }
-  }
-})
+  },
+  gtag: {
+    id: "G-LHM4V3YDGC",
+  },
+});

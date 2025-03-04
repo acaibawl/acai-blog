@@ -28,6 +28,9 @@ export default defineEventHandler(async (event) => {
     return article;
   } catch (error) {
     console.error(error);
-    return { error: '記事の取得に失敗しました。', details: error }
+    throw createError({
+      message: '記事の取得に失敗しました。',
+      statusCode: 500
+    });
   }
 })

@@ -15,6 +15,7 @@ useHead({
     title: data.value?.title,
 })
 
+const origin = useRequestURL().origin;
 const mainImageUrl = data.value?.main_image_url || `${origin}/no-image.png`;
 marked.setOptions({ breaks: true });
 </script>

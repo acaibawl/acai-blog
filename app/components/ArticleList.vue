@@ -14,7 +14,6 @@ if (error.value || !data.value) {
 }
 
 const origin = useRequestURL().origin;
-console.log(origin);
 const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png`;
 </script>
 

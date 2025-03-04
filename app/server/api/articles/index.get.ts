@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
       allArticlesCount: await prisma.article.count()
     } as ArticlesResponse;
   } catch (error) {
+    console.error(error);
     return { error: '記事の取得に失敗しました。', details: error }
   }
 });

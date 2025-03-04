@@ -12,18 +12,22 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const article = await prisma.article.findUnique({
-    where: { id }
-  });
-
-  // articleが見つからない場合はエラーを返す
-  if (!article) {
-    event.node.res.statusCode = 404
-    throw createError({
-      message: 'Article not found',
-      statusCode: 404
+  try {
+    const article = await prisma.article.findUnique({
+      where: { id }
     });
+  
+    // articleが見つからない場合はエラーを返す
+    if (!article) {
+      event.node.res.statusCode = 404
+      throw createError({
+        message: 'Article not found',
+        statusCode: 404
+      });
+    }
+    return article;
+  } catch (error) {
+    console.error(error);
+    return { error: '記事の取得に失敗しました。', details: error }
   }
-
-  return article;
 })

@@ -8,12 +8,15 @@ WORKDIR /app
 COPY app/package.json app/package-lock.json ./
 RUN npm install
 
+# アプリケーションファイルをコピー
+COPY app/ .
+COPY app/prisma ./prisma/
+
+RUN npx prisma generate
+
 # 必要なパッケージのインストール
 RUN apk update \
     && apk add --no-cache bash
-
-# アプリケーションファイルをコピー
-COPY app/ .
 
 # AWS App Runnerでデプロイした際、AWSがどのIPアドレスを割り当てても動作するように設定
 ENV HOST 0.0.0.0

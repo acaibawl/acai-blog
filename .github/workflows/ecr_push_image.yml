@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'containers/node/Dockerfile.dev'
+      - 'containers/node/Dockerfile.prod'
       - 'app/**'
   workflow_dispatch:
 

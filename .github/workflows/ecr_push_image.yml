@@ -1,0 +1,46 @@
+name: ecr push image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'containers/node/Dockerfile.dev'
+      - 'app/**'
+  workflow_dispatch:
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    # `permissions` を設定しないと OIDC が使えないので注意
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+
+      # AWS 認証
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }} # GitHub Actions 用の IAM ロールの ARN
+
+      # ECR ログイン
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: login-ecr # outputs で参照するために id を設定
+
+      # Docker イメージを build・push する
+      - name: build and push docker image to ecr
+        env:
+          # ECR レジストリを `aws-actions/amazon-ecr-login` アクションの `outputs.registry` から取得
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          # イメージを push する ECR リポジトリ名
+          REPOSITORY: acai-blog
+          # 任意のイメージタグ
+          # 今回は Git のコミットハッシュにしておく
+          IMAGE_TAG: latest
+        run: |
+          docker build --tag ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest -f containers/node/Dockerfile.prod .
+          docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest

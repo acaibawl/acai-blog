@@ -28,6 +28,9 @@ useHead({
     { hid: 'twitter:description', name: 'twitter:description', content: description },
     { hid: 'twitter:image', name: 'twitter:image', content:  ogImage}
   ],
+  link: [
+    { rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/yakuhanjp@4.1.1/dist/css/yakuhanjp.css"}
+  ]
 })
 
 const origin = useRequestURL().origin;
@@ -106,5 +109,24 @@ ul {
 
 ul li {
     margin-bottom: 5px;
+}
+
+pre {
+  background-color: #1d2020;   /* 薄いグレーの背景 */
+  border: 1px solid #004195;   /* 薄い境界線 */
+  border-radius: 6px;          /* 角を丸くする */
+  padding: 16px;               /* 内側に十分な余白 */
+  margin: 1em 0;               /* 上下にマージン */
+  overflow-x: auto;            /* 横に長い場合はスクロール可能に */
+}
+
+pre code {
+  display: block;                              /* ブロック要素として表示 */
+  font-family: YakuHanJP, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, sans-serif;;
+  font-size: 100%;                             /* 通常のフォントサイズ */
+  color: #fff;                              /* テキストは濃いグレー */
+  background: transparent;                     /* 親の背景を引き継ぐ */
+  border: none;                                /* 内側の余計な枠線は不要 */
+  line-height: 1.45;                           /* 読みやすい行間 */
 }
 </style>

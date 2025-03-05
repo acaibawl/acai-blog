@@ -22,7 +22,7 @@ model Article {
   main_image_url String?
   body           String
   created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  updated_at     DateTime @default(now()) @updatedAt
 
   @@map("article")
 }

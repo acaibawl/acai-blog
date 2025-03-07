@@ -41,6 +41,7 @@ export default defineNuxtConfig({
     }
   },
   gtag: {
+    enabled: process.env.NODE_ENV === 'production',
     id: "G-LHM4V3YDGC",
   },
   auth: {

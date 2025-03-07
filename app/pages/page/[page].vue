@@ -19,6 +19,9 @@ useHead({
     { hid: 'twitter:image', name: 'twitter:image', content: 'https://acai-blog.com/no-image.png' }
   ]
 })
+definePageMeta({
+  auth: false,
+});
 </script>
 
 <template>

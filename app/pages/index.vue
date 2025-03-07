@@ -15,7 +15,10 @@ useHead({
     { hid: 'twitter:description', name: 'twitter:description', content: '記事一覧ページです。' },
     { hid: 'twitter:image', name: 'twitter:image', content:  ogImage}
   ]
-})
+});
+definePageMeta({
+  auth: false,
+});
 </script>
 
 <template>

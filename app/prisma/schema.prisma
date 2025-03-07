@@ -26,3 +26,14 @@ model Article {
 
   @@map("article")
 }
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  password   String
+  last_login DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@map("user")
+}

@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   css: ['modern-css-reset'],
-  modules: ['nuxt-gtag'],
+  modules: ['nuxt-gtag', '@sidebase/nuxt-auth'],
   app: {
     head: {
       link: [
@@ -35,6 +35,7 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
+    jwtSecret: "",
     public: {
       baseUrl: ""
     }
@@ -42,4 +43,15 @@ export default defineNuxtConfig({
   gtag: {
     id: "G-LHM4V3YDGC",
   },
+  auth: {
+    provider: {
+      type: 'local',
+    },
+    globalAppMiddleware: {
+      isEnabled: true,
+    }
+  },
+  build: {
+    transpile: ['jsonwebtoken']
+  }
 });

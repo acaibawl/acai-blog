@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { marked } from 'marked';
 import dayjs from 'dayjs';
+import type { Article } from '@prisma/client';
 
 // ルートパラメータから記事IDを取得
 const route = useRoute()
 
 // APIから記事詳細データを取得する
-const { data, error } = await useFetch(`/api/articles/${route.params.id}`);
+const { data, error } = await useFetch<Article>(`/api/articles/${route.params.id}`);
 if (error.value) {
     console.error(error.value);
     throw createError(error.value?.data);
@@ -32,6 +33,9 @@ useHead({
     { rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/yakuhanjp@4.1.1/dist/css/yakuhanjp.css"}
   ]
 })
+definePageMeta({
+  auth: false,
+});
 
 const origin = useRequestURL().origin;
 const mainImageUrl = data.value?.main_image_url || `${origin}/no-image.png`;
@@ -44,7 +48,7 @@ marked.setOptions({ breaks: true });
     <!-- <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }} | カテゴリ: {{ category }}</p> -->
     <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }}</p>
     <img class="mainImage" :src="mainImageUrl" alt="記事のメイン画像">
-    <div class="markdown" v-html="marked.parse(data!.body)"></div>
+    <MarkdownPreview :content="data!.body" />
     </article>
 </template>
 
@@ -76,57 +80,4 @@ article .mainImage {
     margin: 10px 0;
 }
 
-/* 記事の段落 */
-article p {
-    margin-bottom: 15px;
-}
-
-/* 見出しのデザイン */
-article h3 {
-    color: #3498db;
-    border-left: 5px solid #3498db;
-    padding-left: 10px;
-    margin: 15px 0;
-}
-
-/* 引用のデザイン */
-blockquote {
-    background: #eef5fb;
-    padding: 10px;
-    border-left: 5px solid #3498db;
-    margin: 10px 0;
-    font-style: italic;
-}
-
-blockquote p {
-  margin-bottom: 0;
-}
-
-/* リスト */
-ul {
-    padding-left: 20px;
-}
-
-ul li {
-    margin-bottom: 5px;
-}
-
-pre {
-  background-color: #1d2020;   /* 薄いグレーの背景 */
-  border: 1px solid #004195;   /* 薄い境界線 */
-  border-radius: 6px;          /* 角を丸くする */
-  padding: 16px;               /* 内側に十分な余白 */
-  margin: 1em 0;               /* 上下にマージン */
-  overflow-x: auto;            /* 横に長い場合はスクロール可能に */
-}
-
-pre code {
-  display: block;                              /* ブロック要素として表示 */
-  font-family: YakuHanJP, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, sans-serif;;
-  font-size: 100%;                             /* 通常のフォントサイズ */
-  color: #fff;                              /* テキストは濃いグレー */
-  background: transparent;                     /* 親の背景を引き継ぐ */
-  border: none;                                /* 内側の余計な枠線は不要 */
-  line-height: 1.45;                           /* 読みやすい行間 */
-}
 </style>

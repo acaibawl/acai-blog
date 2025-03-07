@@ -5,7 +5,7 @@ on:
     branches: 
       - 'main'
     paths:
-      - 'prisma/**'
+      - 'app/prisma/**'
   workflow_dispatch:
 
 jobs:

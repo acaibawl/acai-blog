@@ -29,9 +29,6 @@ useHead({
     { hid: 'twitter:description', name: 'twitter:description', content: description },
     { hid: 'twitter:image', name: 'twitter:image', content:  ogImage}
   ],
-  link: [
-    { rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/yakuhanjp@4.1.1/dist/css/yakuhanjp.css"}
-  ]
 })
 definePageMeta({
   auth: false,

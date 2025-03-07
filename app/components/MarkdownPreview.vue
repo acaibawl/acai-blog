@@ -12,6 +12,12 @@ const props = defineProps({
 const renderedMarkdown = computed(() => {
   return marked(props.content || '');
 });
+
+useHead({
+  link: [
+    { rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/yakuhanjp@4.1.1/dist/css/yakuhanjp.css"}
+  ],
+});
 </script>
 
 <template>

@@ -2,6 +2,10 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+useHead({
+  title: '記事投稿',
+});
+
 const title = ref('');
 const body = ref('');
 const errorMessage = ref('');

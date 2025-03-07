@@ -7,6 +7,10 @@ definePageMeta({
   }
 });
 
+useHead({
+  title: 'ログイン',
+});
+
 const { signIn, status } = useAuth();
 const errorMessage = ref('');
 

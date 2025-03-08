@@ -39,6 +39,19 @@ useHead({
     margin: 15px 0;
 }
 
+.markdown-preview a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: bold;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.markdown-preview a:hover {
+  text-decoration: underline;
+}
+
 /* 引用のデザイン */
 .markdown-preview blockquote {
     background: #eef5fb;

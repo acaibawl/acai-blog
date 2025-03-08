@@ -11,10 +11,13 @@
     "start": "node .output/server/index.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.758.0",
     "@prisma/client": "^6.4.1",
     "@sidebase/nuxt-auth": "^0.10.0",
+    "@types/formidable": "^3.4.5",
     "bcrypt": "^5.1.1",
     "dayjs": "^1.11.13",
+    "formidable": "^3.5.2",
     "jsonwebtoken": "^9.0.2",
     "marked": "^15.0.7",
     "nuxt": "^3.15.4",

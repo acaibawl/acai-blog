@@ -69,7 +69,7 @@ export default defineEventHandler(async (event): Promise<PaginatedResponse> => {
     
     // ページネーションパラメータ
     const page = parseInt(query.page as string) || 1;
-    const limit = parseInt(query.limit as string) || 20;
+    const limit = parseInt(query.limit as string) || 10;
     
     // MinIO設定
     const minioConfig: MinioConfig = {

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 const selectedFile = ref(null);
 const previewUrl = ref('');
@@ -13,7 +13,41 @@ const isLoading = ref(false);
 const currentPage = ref(1);
 const totalPages = ref(0);
 const totalImages = ref(0);
-const itemsPerPage = ref(20);
+const itemsPerPage = ref(10);
+
+// 表示するページ番号の数
+const maxPageButtons = 5;
+
+// 表示するページ番号の配列を計算
+const pageNumbers = computed(() => {
+  if (totalPages.value <= 1) return [];
+  
+  // 表示するページ番号の範囲を計算
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxPageButtons / 2));
+  let endPage = Math.min(totalPages.value, startPage + maxPageButtons - 1);
+  
+  // 最大表示数に満たない場合、startPageを調整
+  if (endPage - startPage + 1 < maxPageButtons) {
+    startPage = Math.max(1, endPage - maxPageButtons + 1);
+  }
+  
+  // ページ番号の配列を生成
+  return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+});
+
+// 最初のページに移動
+const goToFirstPage = () => {
+  if (currentPage.value !== 1) {
+    changePage(1);
+  }
+};
+
+// 最後のページに移動
+const goToLastPage = () => {
+  if (currentPage.value !== totalPages.value) {
+    changePage(totalPages.value);
+  }
+};
 
 // 画像一覧を取得
 const fetchImages = async (page = 1) => {
@@ -228,25 +262,65 @@ onMounted(() => {
       
       <!-- ページネーション -->
       <div v-if="totalPages > 1" class="pagination">
+        <!-- 最初のページへ -->
+        <button 
+          @click="goToFirstPage" 
+          class="pagination-button pagination-nav"
+          :disabled="currentPage <= 1"
+          title="最初のページへ"
+        >
+          &laquo;
+        </button>
+        
+        <!-- 前のページへ -->
         <button 
           @click="prevPage" 
-          class="pagination-button" 
+          class="pagination-button pagination-nav"
           :disabled="currentPage <= 1"
+          title="前のページへ"
         >
-          前へ
+          &lsaquo;
+        </button>
+        
+        <!-- ページ番号 -->
+        <div class="pagination-numbers">
+          <button 
+            v-for="page in pageNumbers" 
+            :key="page"
+            @click="changePage(page)"
+            :class="[
+              'pagination-button', 
+              'pagination-number', 
+              { 'active': page === currentPage }
+            ]"
+          >
+            {{ page }}
+          </button>
+        </div>
+        
+        <!-- 次のページへ -->
+        <button 
+          @click="nextPage" 
+          class="pagination-button pagination-nav"
+          :disabled="currentPage >= totalPages"
+          title="次のページへ"
+        >
+          &rsaquo;
+        </button>
+        
+        <!-- 最後のページへ -->
+        <button 
+          @click="goToLastPage" 
+          class="pagination-button pagination-nav"
+          :disabled="currentPage >= totalPages"
+          title="最後のページへ"
+        >
+          &raquo;
         </button>
         
         <div class="pagination-info">
-          {{ currentPage }} / {{ totalPages }} ページ (全{{ totalImages }}件)
+          (全{{ totalImages }}件)
         </div>
-        
-        <button 
-          @click="nextPage" 
-          class="pagination-button" 
-          :disabled="currentPage >= totalPages"
-        >
-          次へ
-        </button>
       </div>
     </div>
   </div>
@@ -510,29 +584,54 @@ button:disabled {
   justify-content: center;
   align-items: center;
   margin-top: 20px;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 .pagination-button {
-  padding: 8px 16px;
-  background-color: #4a90e2;
-  color: white;
-  border: none;
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
+  min-width: 40px;
+  text-align: center;
 }
 
-.pagination-button:hover:not(:disabled) {
-  background-color: #3a7bc8;
+.pagination-nav {
+  font-weight: bold;
+}
+
+.pagination-number {
+  padding: 8px 12px;
+}
+
+.pagination-number.active {
+  background-color: #4a90e2;
+  color: white;
+  border-color: #4a90e2;
+}
+
+.pagination-button:hover:not(:disabled):not(.active) {
+  background-color: #e0e0e0;
+  border-color: #ccc;
 }
 
 .pagination-button:disabled {
-  background-color: #ccc;
+  background-color: #f5f5f5;
+  color: #ccc;
   cursor: not-allowed;
 }
 
+.pagination-numbers {
+  display: flex;
+  gap: 5px;
+}
+
 .pagination-info {
-  margin: 0 15px;
+  margin-left: 10px;
   font-size: 14px;
   color: #666;
 }
@@ -540,6 +639,16 @@ button:disabled {
 @media (max-width: 768px) {
   .image-gallery {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .pagination {
+    gap: 3px;
+  }
+  
+  .pagination-button {
+    padding: 6px 10px;
+    min-width: 36px;
+    font-size: 14px;
   }
 }
 
@@ -549,8 +658,22 @@ button:disabled {
   }
   
   .pagination {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  .pagination-info {
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    margin-left: 0;
+  }
+  
+  .pagination-numbers {
+    order: 3;
+    margin-top: 5px;
   }
 }
 </style>

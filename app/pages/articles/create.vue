@@ -12,6 +12,10 @@ const body = ref('');
 const errorMessage = ref('');
 const showPreview = ref(false);
 const showImageUploadModal = ref(false);
+const thumbnailUrl = ref(''); // サムネイル画像URL
+const mainImageUrl = ref(''); // メイン画像URL
+const isForThumbnail = ref(false); // サムネイル用の画像選択モード
+const isForMainImage = ref(false); // メイン画像用の画像選択モード
 const router = useRouter();
 
 // テキストエリアの参照を保持
@@ -21,7 +25,9 @@ const togglePreview = () => {
   showPreview.value = !showPreview.value;
 };
 
-const openImageUploadModal = () => {
+const openImageUploadModal = (mode = 'content') => {
+  isForThumbnail.value = mode === 'thumbnail';
+  isForMainImage.value = mode === 'main';
   showImageUploadModal.value = true;
 };
 
@@ -31,34 +37,53 @@ const closeImageUploadModal = () => {
 
 // 画像URLを受け取ってMarkdownの画像タグを挿入する
 const handleImageUploaded = (imageUrl) => {
-  // Markdownの画像タグを作成
-  const imageMarkdown = `![画像](${imageUrl})`;
-  
-  // テキストエリアにフォーカスがある場合はカーソル位置に挿入
-  if (bodyTextarea.value) {
-    const textarea = bodyTextarea.value;
-    const startPos = textarea.selectionStart;
-    const endPos = textarea.selectionEnd;
-    
-    // 現在のテキストを取得
-    const currentText = body.value;
-    
-    // カーソル位置に画像タグを挿入
-    body.value = currentText.substring(0, startPos) + imageMarkdown + currentText.substring(endPos);
-    
-    // カーソル位置を更新
-    setTimeout(() => {
-      textarea.focus();
-      textarea.selectionStart = startPos + imageMarkdown.length;
-      textarea.selectionEnd = startPos + imageMarkdown.length;
-    }, 0);
+  if (isForThumbnail.value) {
+    // サムネイル画像として設定
+    thumbnailUrl.value = imageUrl;
+  } else if (isForMainImage.value) {
+    // メイン画像として設定
+    mainImageUrl.value = imageUrl;
   } else {
-    // フォーカスがない場合は末尾に追加
-    body.value += (body.value ? '\n\n' : '') + imageMarkdown;
+    // 本文に画像を挿入
+    // Markdownの画像タグを作成
+    const imageMarkdown = `![画像](${imageUrl})`;
+    
+    // テキストエリアにフォーカスがある場合はカーソル位置に挿入
+    if (bodyTextarea.value) {
+      const textarea = bodyTextarea.value;
+      const startPos = textarea.selectionStart;
+      const endPos = textarea.selectionEnd;
+      
+      // 現在のテキストを取得
+      const currentText = body.value;
+      
+      // カーソル位置に画像タグを挿入
+      body.value = currentText.substring(0, startPos) + imageMarkdown + currentText.substring(endPos);
+      
+      // カーソル位置を更新
+      setTimeout(() => {
+        textarea.focus();
+        textarea.selectionStart = startPos + imageMarkdown.length;
+        textarea.selectionEnd = startPos + imageMarkdown.length;
+      }, 0);
+    } else {
+      // フォーカスがない場合は末尾に追加
+      body.value += (body.value ? '\n\n' : '') + imageMarkdown;
+    }
   }
   
   // モーダルを閉じる
-  // closeImageUploadModal();
+  closeImageUploadModal();
+};
+
+// サムネイル画像をクリア
+const clearThumbnail = () => {
+  thumbnailUrl.value = '';
+};
+
+// メイン画像をクリア
+const clearMainImage = () => {
+  mainImageUrl.value = '';
 };
 
 const handleSubmit = async () => {
@@ -72,7 +97,12 @@ const handleSubmit = async () => {
     // 記事を投稿するAPIを呼び出す
     const { data, error } = await useFetch('/api/articles/create', {
       method: 'POST',
-      body: { title: title.value, body: body.value },
+      body: { 
+        title: title.value, 
+        body: body.value,
+        thumbnail_url: thumbnailUrl.value || null,
+        main_image_url: mainImageUrl.value || null
+      },
       headers: {
         Authorization: `Bearer ${authToken.value}`
       }
@@ -99,11 +129,65 @@ const handleSubmit = async () => {
         <label for="title" class="form-label">タイトル</label>
         <input type="text" id="title" v-model="title" required class="form-input" placeholder="記事のタイトルを入力してください" />
       </div>
+      
+      <!-- 画像設定セクション -->
+      <div class="form-group">
+        <h3 class="section-title">画像設定</h3>
+        
+        <!-- サムネイル画像設定 -->
+        <div class="image-setting-row">
+          <label class="form-label">サムネイル画像</label>
+          <div class="thumbnail-container">
+            <div v-if="thumbnailUrl" class="thumbnail-preview">
+              <img :src="thumbnailUrl" alt="サムネイル" class="thumbnail-image" />
+              <button type="button" class="thumbnail-clear-button" @click="clearThumbnail">
+                ✕
+              </button>
+            </div>
+            <button 
+              type="button" 
+              class="thumbnail-upload-button" 
+              @click="openImageUploadModal('thumbnail')"
+            >
+              <span class="button-icon">📷</span> 
+              {{ thumbnailUrl ? 'サムネイルを変更' : 'サムネイルを設定' }}
+            </button>
+            <div class="image-description">
+              <small>記事一覧などで表示される小さな画像です</small>
+            </div>
+          </div>
+        </div>
+        
+        <!-- メイン画像設定 -->
+        <div class="image-setting-row">
+          <label class="form-label">メイン画像</label>
+          <div class="thumbnail-container">
+            <div v-if="mainImageUrl" class="thumbnail-preview main-image-preview">
+              <img :src="mainImageUrl" alt="メイン画像" class="thumbnail-image" />
+              <button type="button" class="thumbnail-clear-button" @click="clearMainImage">
+                ✕
+              </button>
+            </div>
+            <button 
+              type="button" 
+              class="thumbnail-upload-button" 
+              @click="openImageUploadModal('main')"
+            >
+              <span class="button-icon">📷</span> 
+              {{ mainImageUrl ? 'メイン画像を変更' : 'メイン画像を設定' }}
+            </button>
+            <div class="image-description">
+              <small>記事の先頭に大きく表示される画像です</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <div class="form-group">
         <div class="form-header">
           <label for="body" class="form-label">内容</label>
           <div class="form-actions-top">
-            <button type="button" class="image-upload-button" @click="openImageUploadModal">
+            <button type="button" class="image-upload-button" @click="openImageUploadModal('content')">
               <span class="button-icon">📷</span> 画像を追加
             </button>
             <button type="button" class="preview-toggle" @click="togglePreview">
@@ -168,6 +252,24 @@ const handleSubmit = async () => {
   margin-bottom: 20px;
 }
 
+.section-title {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.image-setting-row {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #eee;
+}
+
+.image-setting-row:last-child {
+  border-bottom: none;
+}
+
 .form-label {
   display: block;
   margin-bottom: 8px;
@@ -207,7 +309,7 @@ const handleSubmit = async () => {
   gap: 10px;
 }
 
-.image-upload-button {
+.image-upload-button, .thumbnail-upload-button {
   display: flex;
   align-items: center;
   background-color: #4caf50;
@@ -220,7 +322,7 @@ const handleSubmit = async () => {
   transition: background-color 0.3s;
 }
 
-.image-upload-button:hover {
+.image-upload-button:hover, .thumbnail-upload-button:hover {
   background-color: #3d8b40;
 }
 
@@ -304,5 +406,60 @@ const handleSubmit = async () => {
   border-radius: 3px;
   font-family: monospace;
   font-size: 13px;
+}
+
+/* サムネイル関連のスタイル */
+.thumbnail-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.thumbnail-preview {
+  position: relative;
+  width: 120px;
+  height: 80px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.main-image-preview {
+  width: 180px;
+  height: 100px;
+}
+
+.thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-clear-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.thumbnail-clear-button:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.image-description {
+  color: #666;
+  font-size: 12px;
+  margin-top: 5px;
 }
 </style>

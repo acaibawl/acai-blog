@@ -6,7 +6,9 @@ import { verifyAuth } from '~/server/utils/auth';
 // 入力値のスキーマを定義
 const articleSchema = z.object({
   title: z.string().min(1, { message: 'タイトルは必須です' }),
-  body: z.string().min(1, { message: '内容は必須です' })
+  body: z.string().min(1, { message: '内容は必須です' }),
+  thumbnail_url: z.string().nullable().optional(), // サムネイル画像URL（任意）
+  main_image_url: z.string().nullable().optional(), // メイン画像URL（任意）
 });
 
 export default defineEventHandler(async (event) => {
@@ -15,7 +17,8 @@ export default defineEventHandler(async (event) => {
     await verifyAuth(event);
 
     // リクエストボディの取得と検証
-    const result = articleSchema.safeParse(await readBody(event));
+    const body = await readBody(event);
+    const result = articleSchema.safeParse(body);
     
     if (!result.success) {
       // バリデーションエラーの場合
@@ -26,15 +29,21 @@ export default defineEventHandler(async (event) => {
       });
     }
     
-    const { title, body: content } = result.data;
+    const { title, body: content, thumbnail_url, main_image_url } = result.data;
     
     // 記事の登録
     const prisma = new PrismaClient();
+    
+    // データオブジェクトを作成
+    const articleData = {
+      title,
+      body: content,
+      thumbnail_url: thumbnail_url || null,
+      main_image_url: main_image_url || null,
+    };
+    
     const article = await prisma.article.create({
-      data: {
-        title,
-        body: content,
-      },
+      data: articleData,
     });
     
     await prisma.$disconnect();

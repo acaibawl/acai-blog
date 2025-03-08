@@ -9,7 +9,8 @@ on:
     types: [opened, reopened, synchronize]
 
 jobs:
-  gpt-review:
+  gpt-code-review:
+    # gpt reviewラベルが付いている場合にのみジョブを実行する
     if: contains(github.event.pull_request.labels.*.name, 'gpt review')
     runs-on: ubuntu-latest
     steps:

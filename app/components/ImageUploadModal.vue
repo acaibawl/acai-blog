@@ -1,6 +1,15 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false
+  }
+});
+
+const emit = defineEmits(['close', 'image-uploaded']);
+
 const selectedFile = ref(null);
 const previewUrl = ref('');
 const isUploading = ref(false);
@@ -125,6 +134,12 @@ const copyImageUrl = (url) => {
     });
 };
 
+// 画像を選択して親コンポーネントに通知
+const selectImage = (url) => {
+  emit('image-uploaded', url);
+  closeModal();
+};
+
 const handleFileChange = (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -173,6 +188,9 @@ const uploadImage = async () => {
     
     // アップロード成功後に画像一覧を更新
     await fetchImages(1);
+    
+    // 親コンポーネントに通知
+    emit('image-uploaded', result.url);
   } catch (error) {
     console.error('アップロードエラー:', error);
     uploadStatus.value = `エラー: ${error.message}`;
@@ -192,6 +210,10 @@ const resetForm = () => {
   if (fileInput) fileInput.value = '';
 };
 
+const closeModal = () => {
+  emit('close');
+};
+
 // コンポーネントがマウントされたときに画像一覧を取得
 onMounted(() => {
   if (status.value === 'authenticated') {
@@ -201,158 +223,167 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="image-upload-container">
-    <h1 class="page-title">画像アップロード</h1>
-    
-    <div v-if="status !== 'authenticated'" class="auth-message">
-      <p>画像のアップロードと閲覧にはログインが必要です。</p>
-    </div>
-    
-    <div v-else>
-      <div class="upload-form">
-        <div class="form-group">
-          <label for="file-input" class="form-label">画像ファイルを選択</label>
-          <input 
-            type="file" 
-            id="file-input" 
-            accept="image/*" 
-            @change="handleFileChange" 
-            class="file-input"
-          />
-          <div class="file-input-button">
-            ファイルを選択
-            <input 
-              type="file" 
-              accept="image/*" 
-              @change="handleFileChange" 
-              class="file-input-hidden"
-            />
-          </div>
-          <span v-if="selectedFile" class="selected-file-name">
-            {{ selectedFile.name }}
-          </span>
-        </div>
-        
-        <div v-if="previewUrl" class="preview-container">
-          <h3>プレビュー</h3>
-          <img :src="previewUrl" alt="プレビュー" class="image-preview" />
-        </div>
-        
-        <div class="form-actions">
-          <button 
-            @click="uploadImage" 
-            class="upload-button" 
-            :disabled="!selectedFile || isUploading"
-          >
-            {{ isUploading ? 'アップロード中...' : 'アップロード' }}
-          </button>
-          <button 
-            @click="resetForm" 
-            class="reset-button" 
-            :disabled="isUploading"
-          >
-            リセット
-          </button>
-        </div>
-        
-        <div v-if="uploadStatus" :class="['status-message', { 'error': uploadStatus.includes('エラー') }]">
-          {{ uploadStatus }}
-        </div>
-        
-        <div v-if="uploadedImageUrl" class="uploaded-image-info">
-          <h3>アップロード完了</h3>
-          <p>画像URL: <a :href="uploadedImageUrl" target="_blank">{{ uploadedImageUrl }}</a></p>
-          <img :src="uploadedImageUrl" alt="アップロードされた画像" class="uploaded-image-preview" />
-        </div>
+  <div v-if="isOpen" class="modal-overlay" @click.self="closeModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">画像アップロード</h2>
+        <button class="close-button" @click="closeModal">&times;</button>
       </div>
       
-      <!-- 画像一覧セクション -->
-      <div class="image-gallery-section">
-        <h2 class="section-title">アップロード済み画像一覧</h2>
-        
-        <div v-if="isLoading" class="loading-indicator">
-          <p>読み込み中...</p>
+      <div class="modal-body">
+        <div v-if="status !== 'authenticated'" class="auth-message">
+          <p>画像のアップロードと閲覧にはログインが必要です。</p>
         </div>
         
-        <div v-else-if="images.length === 0" class="no-images-message">
-          <p>アップロードされた画像はありません</p>
-        </div>
-        
-        <div v-else class="image-gallery">
-          <div v-for="image in images" :key="image.key" class="image-card">
-            <div class="image-container">
-              <img :src="image.url" :alt="image.key" class="gallery-image" />
+        <div v-else>
+          <div class="upload-form">
+            <div class="form-group">
+              <label for="file-input" class="form-label">画像ファイルを選択</label>
+              <div class="file-input-button">
+                ファイルを選択
+                <input 
+                  type="file" 
+                  id="file-input"
+                  accept="image/*" 
+                  @change="handleFileChange" 
+                  class="file-input-hidden"
+                />
+              </div>
+              <span v-if="selectedFile" class="selected-file-name">
+                {{ selectedFile.name }}
+              </span>
             </div>
-            <div class="image-info">
-              <p class="image-name">{{ image.key.split('/').pop() }}</p>
-              <p class="image-date">{{ new Date(image.lastModified).toLocaleString() }}</p>
-              <button @click="copyImageUrl(image.url)" class="copy-url-button">
-                URLをコピー
+            
+            <div v-if="previewUrl" class="preview-container">
+              <h3>プレビュー</h3>
+              <img :src="previewUrl" alt="プレビュー" class="image-preview" />
+            </div>
+            
+            <div class="form-actions">
+              <button 
+                @click="uploadImage" 
+                class="upload-button" 
+                :disabled="!selectedFile || isUploading"
+              >
+                {{ isUploading ? 'アップロード中...' : 'アップロード' }}
+              </button>
+              <button 
+                @click="resetForm" 
+                class="reset-button" 
+                :disabled="isUploading"
+              >
+                リセット
               </button>
             </div>
-          </div>
-        </div>
-        
-        <!-- ページネーション -->
-        <div v-if="totalPages > 1" class="pagination">
-          <!-- 最初のページへ -->
-          <button 
-            @click="goToFirstPage" 
-            class="pagination-button pagination-nav"
-            :disabled="currentPage <= 1"
-            title="最初のページへ"
-          >
-            &laquo;
-          </button>
-          
-          <!-- 前のページへ -->
-          <button 
-            @click="prevPage" 
-            class="pagination-button pagination-nav"
-            :disabled="currentPage <= 1"
-            title="前のページへ"
-          >
-            &lsaquo;
-          </button>
-          
-          <!-- ページ番号 -->
-          <div class="pagination-numbers">
-            <button 
-              v-for="page in pageNumbers" 
-              :key="page"
-              @click="changePage(page)"
-              :class="[
-                'pagination-button', 
-                'pagination-number', 
-                { 'active': page === currentPage }
-              ]"
-            >
-              {{ page }}
-            </button>
+            
+            <div v-if="uploadStatus" :class="['status-message', { 'error': uploadStatus.includes('エラー') }]">
+              {{ uploadStatus }}
+            </div>
+            
+            <div v-if="uploadedImageUrl" class="uploaded-image-info">
+              <h3>アップロード完了</h3>
+              <p>画像URL: <a :href="uploadedImageUrl" target="_blank">{{ uploadedImageUrl }}</a></p>
+              <button @click="selectImage(uploadedImageUrl)" class="select-image-button">
+                この画像を選択
+              </button>
+              <img :src="uploadedImageUrl" alt="アップロードされた画像" class="uploaded-image-preview" />
+            </div>
           </div>
           
-          <!-- 次のページへ -->
-          <button 
-            @click="nextPage" 
-            class="pagination-button pagination-nav"
-            :disabled="currentPage >= totalPages"
-            title="次のページへ"
-          >
-            &rsaquo;
-          </button>
-          
-          <!-- 最後のページへ -->
-          <button 
-            @click="goToLastPage" 
-            class="pagination-button pagination-nav"
-            :disabled="currentPage >= totalPages"
-            title="最後のページへ"
-          >
-            &raquo;
-          </button>
-          
-          <div class="pagination-info">
-            (全{{ totalImages }}件)
+          <!-- 画像一覧セクション -->
+          <div class="image-gallery-section">
+            <h3 class="section-title">アップロード済み画像一覧</h3>
+            
+            <div v-if="isLoading" class="loading-indicator">
+              <p>読み込み中...</p>
+            </div>
+            
+            <div v-else-if="images.length === 0" class="no-images-message">
+              <p>アップロードされた画像はありません</p>
+            </div>
+            
+            <div v-else class="image-gallery">
+              <div v-for="image in images" :key="image.key" class="image-card">
+                <div class="image-container">
+                  <img :src="image.url" :alt="image.key" class="gallery-image" />
+                </div>
+                <div class="image-info">
+                  <p class="image-name">{{ image.key.split('/').pop() }}</p>
+                  <p class="image-date">{{ new Date(image.lastModified).toLocaleString() }}</p>
+                  <div class="image-actions">
+                    <button @click="copyImageUrl(image.url)" class="copy-url-button">
+                      URLをコピー
+                    </button>
+                    <button @click="selectImage(image.url)" class="select-image-button">
+                      選択
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- ページネーション -->
+            <div v-if="totalPages > 1" class="pagination">
+              <!-- 最初のページへ -->
+              <button 
+                @click="goToFirstPage" 
+                class="pagination-button pagination-nav"
+                :disabled="currentPage <= 1"
+                title="最初のページへ"
+              >
+                &laquo;
+              </button>
+              
+              <!-- 前のページへ -->
+              <button 
+                @click="prevPage" 
+                class="pagination-button pagination-nav"
+                :disabled="currentPage <= 1"
+                title="前のページへ"
+              >
+                &lsaquo;
+              </button>
+              
+              <!-- ページ番号 -->
+              <div class="pagination-numbers">
+                <button 
+                  v-for="page in pageNumbers" 
+                  :key="page"
+                  @click="changePage(page)"
+                  :class="[
+                    'pagination-button', 
+                    'pagination-number', 
+                    { 'active': page === currentPage }
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </div>
+              
+              <!-- 次のページへ -->
+              <button 
+                @click="nextPage" 
+                class="pagination-button pagination-nav"
+                :disabled="currentPage >= totalPages"
+                title="次のページへ"
+              >
+                &rsaquo;
+              </button>
+              
+              <!-- 最後のページへ -->
+              <button 
+                @click="goToLastPage" 
+                class="pagination-button pagination-nav"
+                :disabled="currentPage >= totalPages"
+                title="最後のページへ"
+              >
+                &raquo;
+              </button>
+              
+              <div class="pagination-info">
+                (全{{ totalImages }}件)
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -361,17 +392,64 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.image-upload-container {
-  max-width: 800px;
-  margin: 0 auto;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  overflow-y: auto;
   padding: 20px;
 }
 
-.page-title {
-  font-size: 28px;
-  margin-bottom: 30px;
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+  font-size: 20px;
+  margin: 0;
   color: #333;
-  text-align: center;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
 }
 
 .auth-message {
@@ -385,10 +463,10 @@ onMounted(() => {
 
 .upload-form {
   background-color: white;
-  padding: 30px;
+  padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
 .form-group {
@@ -400,10 +478,6 @@ onMounted(() => {
   margin-bottom: 8px;
   font-weight: bold;
   color: #333;
-}
-
-.file-input {
-  display: none;
 }
 
 .file-input-button {
@@ -445,7 +519,7 @@ onMounted(() => {
 
 .image-preview {
   max-width: 100%;
-  max-height: 300px;
+  max-height: 200px;
   border: 1px solid #ddd;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -458,11 +532,11 @@ onMounted(() => {
   margin-top: 20px;
 }
 
-.upload-button, .reset-button {
-  padding: 12px 24px;
+.upload-button, .reset-button, .select-image-button {
+  padding: 10px 20px;
   border: none;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
@@ -485,6 +559,17 @@ onMounted(() => {
   background-color: #e5e5e5;
 }
 
+.select-image-button {
+  background-color: #4caf50;
+  color: white;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.select-image-button:hover {
+  background-color: #3d8b40;
+}
+
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -505,7 +590,7 @@ button:disabled {
 }
 
 .uploaded-image-info {
-  margin-top: 30px;
+  margin-top: 20px;
   padding: 15px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -524,7 +609,7 @@ button:disabled {
 
 .uploaded-image-preview {
   max-width: 100%;
-  max-height: 200px;
+  max-height: 150px;
   margin-top: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -533,29 +618,29 @@ button:disabled {
 /* 画像ギャラリーのスタイル */
 .image-gallery-section {
   background-color: white;
-  padding: 30px;
+  padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
-  font-size: 22px;
-  margin-bottom: 20px;
+  font-size: 18px;
+  margin-bottom: 15px;
   color: #333;
   text-align: center;
 }
 
 .loading-indicator, .no-images-message {
   text-align: center;
-  padding: 20px;
+  padding: 15px;
   color: #666;
 }
 
 .image-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
 .image-card {
@@ -567,12 +652,12 @@ button:disabled {
 }
 
 .image-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .image-container {
-  height: 150px;
+  height: 100px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -587,12 +672,12 @@ button:disabled {
 }
 
 .image-info {
-  padding: 10px;
+  padding: 8px;
 }
 
 .image-name {
-  margin: 0 0 5px;
-  font-size: 14px;
+  margin: 0 0 3px;
+  font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
   overflow: hidden;
@@ -600,21 +685,30 @@ button:disabled {
 }
 
 .image-date {
-  margin: 0 0 10px;
-  font-size: 12px;
+  margin: 0 0 5px;
+  font-size: 10px;
   color: #666;
 }
 
-.copy-url-button {
+.image-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.copy-url-button, .select-image-button {
   width: 100%;
-  padding: 6px 0;
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  padding: 5px 0;
   font-size: 12px;
+  border: none;
+  border-radius: 3px;
   cursor: pointer;
   transition: background-color 0.3s;
+}
+
+.copy-url-button {
+  background-color: #4a90e2;
+  color: white;
 }
 
 .copy-url-button:hover {
@@ -626,29 +720,26 @@ button:disabled {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 15px;
   flex-wrap: wrap;
   gap: 5px;
 }
 
 .pagination-button {
-  padding: 8px 12px;
+  padding: 6px 10px;
   background-color: #f5f5f5;
   color: #333;
   border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-  min-width: 40px;
+  min-width: 30px;
   text-align: center;
+  font-size: 12px;
 }
 
 .pagination-nav {
   font-weight: bold;
-}
-
-.pagination-number {
-  padding: 8px 12px;
 }
 
 .pagination-number.active {
@@ -675,13 +766,13 @@ button:disabled {
 
 .pagination-info {
   margin-left: 10px;
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
 }
 
 @media (max-width: 768px) {
   .image-gallery {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
   
   .pagination {
@@ -689,19 +780,23 @@ button:disabled {
   }
   
   .pagination-button {
-    padding: 6px 10px;
-    min-width: 36px;
-    font-size: 14px;
+    padding: 5px 8px;
+    min-width: 28px;
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
   .image-gallery {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
   
   .pagination {
-    flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     gap: 5px;
@@ -710,13 +805,8 @@ button:disabled {
   .pagination-info {
     width: 100%;
     text-align: center;
-    margin-top: 10px;
+    margin-top: 5px;
     margin-left: 0;
   }
-  
-  .pagination-numbers {
-    order: 3;
-    margin-top: 5px;
-  }
 }
-</style>
+</style> 

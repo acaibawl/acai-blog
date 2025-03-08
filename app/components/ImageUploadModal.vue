@@ -102,6 +102,48 @@ const fetchImages = async (page = 1) => {
   }
 };
 
+// 画像を削除
+const deleteImage = async (image) => {
+  if (!checkAuth()) return;
+  
+  if (!confirm(`「${image.key.split('/').pop()}」を削除してもよろしいですか？`)) {
+    return;
+  }
+  
+  try {
+    // キーをエンコードしてURLに含める
+    const encodedKey = encodeURIComponent(image.key);
+    
+    const response = await fetch(`/api/images/${encodedKey}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${authToken.value}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.statusMessage || '画像の削除に失敗しました');
+    }
+    
+    // 削除成功
+    uploadStatus.value = '画像を削除しました';
+    
+    // 画像一覧を更新
+    await fetchImages(currentPage.value);
+    
+    // 3秒後にステータスメッセージをクリア
+    setTimeout(() => {
+      if (uploadStatus.value === '画像を削除しました') {
+        uploadStatus.value = '';
+      }
+    }, 3000);
+  } catch (error) {
+    console.error('画像削除エラー:', error);
+    uploadStatus.value = `エラー: ${error.message}`;
+  }
+};
+
 // ページを変更
 const changePage = (page) => {
   if (page < 1 || page > totalPages.value) return;
@@ -316,6 +358,9 @@ onMounted(() => {
                     </button>
                     <button @click="selectImage(image.url)" class="select-image-button">
                       選択
+                    </button>
+                    <button @click="deleteImage(image)" class="delete-image-button">
+                      削除
                     </button>
                   </div>
                 </div>
@@ -696,7 +741,7 @@ button:disabled {
   gap: 5px;
 }
 
-.copy-url-button, .select-image-button {
+.copy-url-button, .select-image-button, .delete-image-button {
   width: 100%;
   padding: 5px 0;
   font-size: 12px;
@@ -713,6 +758,25 @@ button:disabled {
 
 .copy-url-button:hover {
   background-color: #3a7bc8;
+}
+
+.select-image-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.select-image-button:hover {
+  background-color: #3d8b40;
+}
+
+.delete-image-button {
+  background-color: #f44336;
+  color: white;
+  margin-top: 5px;
+}
+
+.delete-image-button:hover {
+  background-color: #d32f2f;
 }
 
 /* ページネーション */

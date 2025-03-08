@@ -1,99 +1,30 @@
-import { createError } from 'h3';
-import { randomUUID } from 'crypto';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import formidable from 'formidable';
+import { defineEventHandler, createError } from 'h3';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import fs from 'fs';
-import path from 'path';
 import { verifyAuth } from '~/server/utils/auth';
+import { 
+  createS3Client, 
+  getMinioConfig, 
+  validateMinioConfig,
+  generateImageUrl
+} from '~/server/utils/s3';
+import {
+  parseFile,
+  validateFileType,
+  generateFileName,
+  getFilePath
+} from '~/server/utils/fileUpload';
 
-// 型定義
-interface UploadedFile {
-  filepath?: string;
-  path?: string;
-  mimetype?: string;
-  type?: string;
-  originalFilename?: string;
-  originalname?: string;
-  name?: string;
-  [key: string]: any;
-}
-
+// レスポンスの型定義
 interface UploadResponse {
   success: boolean;
   url: string;
   fileName: string;
 }
 
-// S3クライアントの初期化
-const createS3Client = () => {
-  const config = useRuntimeConfig();
-  return new S3Client({
-    endpoint: config.minioEndpoint,
-    region: 'ap-northeast-1',
-    credentials: {
-      accessKeyId: config.minioAccessKey,
-      secretAccessKey: config.minioSecretKey
-    },
-    forcePathStyle: true // MinIOではパススタイルのURLを使用
-  });
-};
-
-// ファイルのパース処理
-const parseFile = async (req: any): Promise<{ fields: any; files: any }> => {
-  const form = formidable({
-    multiples: false,
-    keepExtensions: true,
-    maxFileSize: 5 * 1024 * 1024, // 5MB制限
-  });
-
-  return new Promise((resolve, reject) => {
-    form.parse(req, (err: any, fields: any, files: any) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve({ fields, files });
-    });
-  });
-};
-
-// ファイルタイプの検証
-const validateFileType = (file: UploadedFile) => {
-  const mimeType = file.mimetype || file.type || '';
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  
-  if (!allowedTypes.includes(mimeType)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: '許可されていないファイル形式です。JPEG、PNG、GIF、WEBPのみ許可されています。'
-    });
-  }
-  
-  return mimeType;
-};
-
-// ファイル名の生成
-const generateFileName = (file: UploadedFile): string => {
-  const originalFilename = file.originalFilename || file.originalname || file.name || 'unknown.jpg';
-  const fileExt = path.extname(originalFilename);
-  return `${randomUUID()}${fileExt}`;
-};
-
-// ファイルパスの取得
-const getFilePath = (file: UploadedFile): string => {
-  const filePath = file.filepath || file.path;
-  if (!filePath) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'ファイルパスが見つかりません。'
-    });
-  }
-  return filePath;
-};
-
 // S3へのアップロード
 const uploadToS3 = async (
-  s3Client: S3Client, 
+  s3Client: any, 
   bucketName: string, 
   fileName: string, 
   filePath: string, 
@@ -120,9 +51,14 @@ export default defineEventHandler(async (event): Promise<UploadResponse> => {
     // 認証チェック
     await verifyAuth(event);
     
-    const config = useRuntimeConfig();
-    const s3Client = createS3Client();
-    const bucketName = config.minioBucket;
+    // MinIO設定を取得
+    const minioConfig = getMinioConfig();
+    
+    // 設定を検証
+    validateMinioConfig(minioConfig);
+    
+    // S3クライアントを作成
+    const s3Client = createS3Client(minioConfig);
 
     // ファイルをパース
     const { files } = await parseFile(event.node.req);
@@ -151,11 +87,10 @@ export default defineEventHandler(async (event): Promise<UploadResponse> => {
     const filePath = getFilePath(imageFile);
 
     // S3にアップロード
-    await uploadToS3(s3Client, bucketName, fileName, filePath, mimeType);
+    await uploadToS3(s3Client, minioConfig.bucket, fileName, filePath, mimeType);
 
     // 画像のURLを生成
-    const imageUrlBase = config.minioImageUrlBase || config.minioEndpoint;
-    const imageUrl = `${imageUrlBase}/${bucketName}/${fileName}`;
+    const imageUrl = generateImageUrl(fileName, minioConfig);
 
     return {
       success: true,

@@ -1,20 +1,7 @@
 import { defineEventHandler, createError } from 'h3';
-import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { verifyAuth } from '~/server/utils/auth';
-
-// S3クライアントの作成
-const createS3Client = () => {
-  const config = useRuntimeConfig();
-  return new S3Client({
-    endpoint: config.minioEndpoint,
-    region: 'ap-northeast-1',
-    credentials: {
-      accessKeyId: config.minioAccessKey,
-      secretAccessKey: config.minioSecretKey
-    },
-    forcePathStyle: true // MinIOではパススタイルのURLを使用
-  });
-};
+import { createS3Client, getMinioConfig, validateMinioConfig } from '~/server/utils/s3';
 
 export default defineEventHandler(async (event) => {
   try {
@@ -30,24 +17,20 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // S3バケット名を取得
-    const config = useRuntimeConfig();
-    const bucketName = config.minioBucket;
-    if (!bucketName) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'S3バケット名が設定されていません',
-      });
-    }
+    // MinIO設定を取得
+    const minioConfig = getMinioConfig();
+    
+    // 設定を検証
+    validateMinioConfig(minioConfig);
 
     // S3クライアントを作成
-    const s3Client = createS3Client();
+    const s3Client = createS3Client(minioConfig);
 
     // 画像を削除
     const decodedKey = decodeURIComponent(key);
     await s3Client.send(
       new DeleteObjectCommand({
-        Bucket: bucketName,
+        Bucket: minioConfig.bucket,
         Key: decodedKey,
       })
     );

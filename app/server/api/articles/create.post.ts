@@ -1,7 +1,7 @@
-import { defineEventHandler, readBody, createError, getRequestHeader } from 'h3';
+import { defineEventHandler, readBody, createError } from 'h3';
 import { PrismaClient } from '@prisma/client';
-import { verify } from 'jsonwebtoken';
 import { z } from 'zod';
+import { verifyAuth } from '~/server/utils/auth';
 
 // 入力値のスキーマを定義
 const articleSchema = z.object({
@@ -10,20 +10,9 @@ const articleSchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-  // 認証チェック
-  const authHeaderValue = getRequestHeader(event, "authorization");
-  if (!authHeaderValue) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "認証が必要です",
-    });
-  }
-
-  // トークンの検証
   try {
-    const token = authHeaderValue.replace('Bearer ', '');
-    const config = useRuntimeConfig(event);
-    const decoded = verify(token, config.jwtSecret);
+    // 認証チェック
+    await verifyAuth(event);
 
     // リクエストボディの取得と検証
     const result = articleSchema.safeParse(await readBody(event));
@@ -54,11 +43,18 @@ export default defineEventHandler(async (event) => {
       id: article.id,
       message: "記事が投稿されました",
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("記事の投稿に失敗しました:", error);
-    throw createError({
-      statusCode: 401,
-      statusMessage: "認証に失敗しました",
-    });
+    
+    // 認証エラーはverifyAuth内で処理されるため、それ以外のエラーを処理
+    if (!error.statusCode) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: "サーバーエラーが発生しました",
+      });
+    }
+    
+    // 既に適切なエラーが生成されている場合はそのまま再スロー
+    throw error;
   }
 }); 

@@ -15,6 +15,10 @@ const totalPages = ref(0);
 const totalImages = ref(0);
 const itemsPerPage = ref(10);
 
+// 認証関連
+const { status } = useAuth();
+const authToken = useCookie('auth.token');
+
 // 表示するページ番号の数
 const maxPageButtons = 5;
 
@@ -35,6 +39,15 @@ const pageNumbers = computed(() => {
   return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
 });
 
+// 認証状態の確認
+const checkAuth = () => {
+  if (status.value !== 'authenticated' || !authToken.value) {
+    uploadStatus.value = 'エラー: ログインが必要です。';
+    return false;
+  }
+  return true;
+};
+
 // 最初のページに移動
 const goToFirstPage = () => {
   if (currentPage.value !== 1) {
@@ -51,12 +64,19 @@ const goToLastPage = () => {
 
 // 画像一覧を取得
 const fetchImages = async (page = 1) => {
+  if (!checkAuth()) return;
+  
   isLoading.value = true;
   try {
-    const response = await fetch(`/api/images?page=${page}&limit=${itemsPerPage.value}`);
+    const response = await fetch(`/api/images?page=${page}&limit=${itemsPerPage.value}`, {
+      headers: {
+        'Authorization': `Bearer ${authToken.value}`
+      }
+    });
     
     if (!response.ok) {
-      throw new Error('画像一覧の取得に失敗しました');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.statusMessage || '画像一覧の取得に失敗しました');
     }
     
     const data = await response.json();
@@ -67,6 +87,7 @@ const fetchImages = async (page = 1) => {
     currentPage.value = data.page;
   } catch (error) {
     console.error('画像一覧取得エラー:', error);
+    uploadStatus.value = `エラー: ${error.message}`;
   } finally {
     isLoading.value = false;
   }
@@ -119,6 +140,8 @@ const handleFileChange = (event) => {
 };
 
 const uploadImage = async () => {
+  if (!checkAuth()) return;
+  
   if (!selectedFile.value) {
     uploadStatus.value = 'エラー: ファイルが選択されていません。';
     return;
@@ -133,13 +156,16 @@ const uploadImage = async () => {
     
     const response = await fetch('/api/images', {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken.value}`
+      },
       body: formData
     });
     
     const result = await response.json();
     
     if (!response.ok) {
-      throw new Error(result.message || 'アップロードに失敗しました。');
+      throw new Error(result.statusMessage || 'アップロードに失敗しました。');
     }
     
     uploadStatus.value = 'アップロード成功！';
@@ -168,7 +194,9 @@ const resetForm = () => {
 
 // コンポーネントがマウントされたときに画像一覧を取得
 onMounted(() => {
-  fetchImages();
+  if (status.value === 'authenticated') {
+    fetchImages();
+  }
 });
 </script>
 
@@ -176,150 +204,156 @@ onMounted(() => {
   <div class="image-upload-container">
     <h1 class="page-title">画像アップロード</h1>
     
-    <div class="upload-form">
-      <div class="form-group">
-        <label for="file-input" class="form-label">画像ファイルを選択</label>
-        <input 
-          type="file" 
-          id="file-input" 
-          accept="image/*" 
-          @change="handleFileChange" 
-          class="file-input"
-        />
-        <div class="file-input-button">
-          ファイルを選択
-          <input 
-            type="file" 
-            accept="image/*" 
-            @change="handleFileChange" 
-            class="file-input-hidden"
-          />
-        </div>
-        <span v-if="selectedFile" class="selected-file-name">
-          {{ selectedFile.name }}
-        </span>
-      </div>
-      
-      <div v-if="previewUrl" class="preview-container">
-        <h3>プレビュー</h3>
-        <img :src="previewUrl" alt="プレビュー" class="image-preview" />
-      </div>
-      
-      <div class="form-actions">
-        <button 
-          @click="uploadImage" 
-          class="upload-button" 
-          :disabled="!selectedFile || isUploading"
-        >
-          {{ isUploading ? 'アップロード中...' : 'アップロード' }}
-        </button>
-        <button 
-          @click="resetForm" 
-          class="reset-button" 
-          :disabled="isUploading"
-        >
-          リセット
-        </button>
-      </div>
-      
-      <div v-if="uploadStatus" :class="['status-message', { 'error': uploadStatus.includes('エラー') }]">
-        {{ uploadStatus }}
-      </div>
-      
-      <div v-if="uploadedImageUrl" class="uploaded-image-info">
-        <h3>アップロード完了</h3>
-        <p>画像URL: <a :href="uploadedImageUrl" target="_blank">{{ uploadedImageUrl }}</a></p>
-        <img :src="uploadedImageUrl" alt="アップロードされた画像" class="uploaded-image-preview" />
-      </div>
+    <div v-if="status !== 'authenticated'" class="auth-message">
+      <p>画像のアップロードと閲覧にはログインが必要です。</p>
     </div>
     
-    <!-- 画像一覧セクション -->
-    <div class="image-gallery-section">
-      <h2 class="section-title">アップロード済み画像一覧</h2>
-      
-      <div v-if="isLoading" class="loading-indicator">
-        <p>読み込み中...</p>
-      </div>
-      
-      <div v-else-if="images.length === 0" class="no-images-message">
-        <p>アップロードされた画像はありません</p>
-      </div>
-      
-      <div v-else class="image-gallery">
-        <div v-for="image in images" :key="image.key" class="image-card">
-          <div class="image-container">
-            <img :src="image.url" :alt="image.key" class="gallery-image" />
+    <div v-else>
+      <div class="upload-form">
+        <div class="form-group">
+          <label for="file-input" class="form-label">画像ファイルを選択</label>
+          <input 
+            type="file" 
+            id="file-input" 
+            accept="image/*" 
+            @change="handleFileChange" 
+            class="file-input"
+          />
+          <div class="file-input-button">
+            ファイルを選択
+            <input 
+              type="file" 
+              accept="image/*" 
+              @change="handleFileChange" 
+              class="file-input-hidden"
+            />
           </div>
-          <div class="image-info">
-            <p class="image-name">{{ image.key.split('/').pop() }}</p>
-            <p class="image-date">{{ new Date(image.lastModified).toLocaleString() }}</p>
-            <button @click="copyImageUrl(image.url)" class="copy-url-button">
-              URLをコピー
-            </button>
-          </div>
+          <span v-if="selectedFile" class="selected-file-name">
+            {{ selectedFile.name }}
+          </span>
         </div>
-      </div>
-      
-      <!-- ページネーション -->
-      <div v-if="totalPages > 1" class="pagination">
-        <!-- 最初のページへ -->
-        <button 
-          @click="goToFirstPage" 
-          class="pagination-button pagination-nav"
-          :disabled="currentPage <= 1"
-          title="最初のページへ"
-        >
-          &laquo;
-        </button>
         
-        <!-- 前のページへ -->
-        <button 
-          @click="prevPage" 
-          class="pagination-button pagination-nav"
-          :disabled="currentPage <= 1"
-          title="前のページへ"
-        >
-          &lsaquo;
-        </button>
+        <div v-if="previewUrl" class="preview-container">
+          <h3>プレビュー</h3>
+          <img :src="previewUrl" alt="プレビュー" class="image-preview" />
+        </div>
         
-        <!-- ページ番号 -->
-        <div class="pagination-numbers">
+        <div class="form-actions">
           <button 
-            v-for="page in pageNumbers" 
-            :key="page"
-            @click="changePage(page)"
-            :class="[
-              'pagination-button', 
-              'pagination-number', 
-              { 'active': page === currentPage }
-            ]"
+            @click="uploadImage" 
+            class="upload-button" 
+            :disabled="!selectedFile || isUploading"
           >
-            {{ page }}
+            {{ isUploading ? 'アップロード中...' : 'アップロード' }}
+          </button>
+          <button 
+            @click="resetForm" 
+            class="reset-button" 
+            :disabled="isUploading"
+          >
+            リセット
           </button>
         </div>
         
-        <!-- 次のページへ -->
-        <button 
-          @click="nextPage" 
-          class="pagination-button pagination-nav"
-          :disabled="currentPage >= totalPages"
-          title="次のページへ"
-        >
-          &rsaquo;
-        </button>
+        <div v-if="uploadStatus" :class="['status-message', { 'error': uploadStatus.includes('エラー') }]">
+          {{ uploadStatus }}
+        </div>
         
-        <!-- 最後のページへ -->
-        <button 
-          @click="goToLastPage" 
-          class="pagination-button pagination-nav"
-          :disabled="currentPage >= totalPages"
-          title="最後のページへ"
-        >
-          &raquo;
-        </button>
+        <div v-if="uploadedImageUrl" class="uploaded-image-info">
+          <h3>アップロード完了</h3>
+          <p>画像URL: <a :href="uploadedImageUrl" target="_blank">{{ uploadedImageUrl }}</a></p>
+          <img :src="uploadedImageUrl" alt="アップロードされた画像" class="uploaded-image-preview" />
+        </div>
+      </div>
+      
+      <!-- 画像一覧セクション -->
+      <div class="image-gallery-section">
+        <h2 class="section-title">アップロード済み画像一覧</h2>
         
-        <div class="pagination-info">
-          (全{{ totalImages }}件)
+        <div v-if="isLoading" class="loading-indicator">
+          <p>読み込み中...</p>
+        </div>
+        
+        <div v-else-if="images.length === 0" class="no-images-message">
+          <p>アップロードされた画像はありません</p>
+        </div>
+        
+        <div v-else class="image-gallery">
+          <div v-for="image in images" :key="image.key" class="image-card">
+            <div class="image-container">
+              <img :src="image.url" :alt="image.key" class="gallery-image" />
+            </div>
+            <div class="image-info">
+              <p class="image-name">{{ image.key.split('/').pop() }}</p>
+              <p class="image-date">{{ new Date(image.lastModified).toLocaleString() }}</p>
+              <button @click="copyImageUrl(image.url)" class="copy-url-button">
+                URLをコピー
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ページネーション -->
+        <div v-if="totalPages > 1" class="pagination">
+          <!-- 最初のページへ -->
+          <button 
+            @click="goToFirstPage" 
+            class="pagination-button pagination-nav"
+            :disabled="currentPage <= 1"
+            title="最初のページへ"
+          >
+            &laquo;
+          </button>
+          
+          <!-- 前のページへ -->
+          <button 
+            @click="prevPage" 
+            class="pagination-button pagination-nav"
+            :disabled="currentPage <= 1"
+            title="前のページへ"
+          >
+            &lsaquo;
+          </button>
+          
+          <!-- ページ番号 -->
+          <div class="pagination-numbers">
+            <button 
+              v-for="page in pageNumbers" 
+              :key="page"
+              @click="changePage(page)"
+              :class="[
+                'pagination-button', 
+                'pagination-number', 
+                { 'active': page === currentPage }
+              ]"
+            >
+              {{ page }}
+            </button>
+          </div>
+          
+          <!-- 次のページへ -->
+          <button 
+            @click="nextPage" 
+            class="pagination-button pagination-nav"
+            :disabled="currentPage >= totalPages"
+            title="次のページへ"
+          >
+            &rsaquo;
+          </button>
+          
+          <!-- 最後のページへ -->
+          <button 
+            @click="goToLastPage" 
+            class="pagination-button pagination-nav"
+            :disabled="currentPage >= totalPages"
+            title="最後のページへ"
+          >
+            &raquo;
+          </button>
+          
+          <div class="pagination-info">
+            (全{{ totalImages }}件)
+          </div>
         </div>
       </div>
     </div>
@@ -338,6 +372,15 @@ onMounted(() => {
   margin-bottom: 30px;
   color: #333;
   text-align: center;
+}
+
+.auth-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .upload-form {

@@ -4,6 +4,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import { verifyAuth } from '~/server/utils/auth';
 
 // 型定義
 interface UploadedFile {
@@ -116,6 +117,9 @@ const uploadToS3 = async (
 // メインハンドラー
 export default defineEventHandler(async (event): Promise<UploadResponse> => {
   try {
+    // 認証チェック
+    await verifyAuth(event);
+    
     const config = useRuntimeConfig();
     const s3Client = createS3Client();
     const bucketName = config.minioBucket;
@@ -161,9 +165,15 @@ export default defineEventHandler(async (event): Promise<UploadResponse> => {
   } catch (error: any) {
     console.error('画像アップロードエラー:', error);
     
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || '画像のアップロード中にエラーが発生しました。'
-    });
+    // 認証エラーはverifyAuth内で処理されるため、それ以外のエラーを処理
+    if (!error.statusCode) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: '画像のアップロード中にエラーが発生しました。'
+      });
+    }
+    
+    // 既に適切なエラーが生成されている場合はそのまま再スロー
+    throw error;
   }
 }); 

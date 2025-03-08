@@ -1,5 +1,6 @@
 import { createError } from 'h3';
 import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { verifyAuth } from '~/server/utils/auth';
 
 // 型定義
 interface ImageItem {
@@ -64,6 +65,9 @@ const filterImageFiles = (contents: any[]): any[] => {
 // 画像一覧を取得するAPI
 export default defineEventHandler(async (event): Promise<PaginatedResponse> => {
   try {
+    // 認証チェック
+    await verifyAuth(event);
+    
     const config = useRuntimeConfig();
     const query = getQuery(event);
     
@@ -143,18 +147,15 @@ export default defineEventHandler(async (event): Promise<PaginatedResponse> => {
   } catch (error: any) {
     console.error('画像一覧取得エラー:', error);
     
-    // AWS S3エラーの詳細をログに出力
-    if (error.code || error.$metadata) {
-      console.error('AWS S3エラー詳細:', {
-        code: error.code,
-        message: error.message,
-        metadata: error.$metadata
+    // 認証エラーはverifyAuth内で処理されるため、それ以外のエラーを処理
+    if (!error.statusCode) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: '画像一覧の取得中にエラーが発生しました。'
       });
     }
     
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.message || '画像一覧の取得中にエラーが発生しました。'
-    });
+    // 既に適切なエラーが生成されている場合はそのまま再スロー
+    throw error;
   }
 }); 

@@ -1,0 +1,42 @@
+name: Code Review
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  gpt-review:
+    if: contains(github.event.pull_request.labels.*.name, 'gpt review')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anc95/ChatGPT-CodeReview@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LANGUAGE: Japanese
+          OPENAI_API_ENDPOINT: https://api.openai.com/v1
+          MODEL: gpt-4o-mini
+          PROMPT: |
+            あなたはシニアエンジニアです。回答は日本語でお願いします。
+            誰にとっても読みやすいコードになるよう、改善点を見つけたら積極的にレビューしてください。
+            優れた箇所があれば挙げてください。
+            あなたに渡されるコードは一部分であるため、未定義のメソッドやクラスなどの指摘については消極的にしてください。
+            WHATを表すコメントに関する指摘については消極的にしてください。
+            指摘時には変更する理由を説明した上で、変更後のコード例を示してください。
+            特に以下の点を指摘してください:
+            - 誤解を招いたり、実態を正確に表していない命名があるか
+            - 適切な粒度で変数が定義されているか
+            - メソッド・関数の区分が適切な粒度か
+            - 冗長な書き方のコードがないか
+            - N+1問題を引き起こす箇所がないか
+            - WHYのコメントが適切にされているか
+            - 複雑な条件式が作られていないか
+            - 明らかなセキュリティの問題があるか
+          top_p: 1
+          temperature: 1
+          max_tokens: 4096
+          MAX_PATCH_LENGTH: 4096

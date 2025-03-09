@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 import ImageUploadModal from '~/components/ImageUploadModal.vue';
 
 useHead({
@@ -17,6 +15,9 @@ const mainImageUrl = ref<string>(''); // メイン画像URL
 const isForThumbnail = ref<boolean>(false); // サムネイル用の画像選択モード
 const isForMainImage = ref<boolean>(false); // メイン画像用の画像選択モード
 const router = useRouter();
+
+// 認証関連
+const { authToken, checkAuth } = useAuthCheck(errorMessage);
 
 // テキストエリアの参照を保持
 const bodyTextarea = ref<HTMLTextAreaElement | null>(null);
@@ -88,10 +89,9 @@ const clearMainImage = (): void => {
 
 const handleSubmit = async (): Promise<void> => {
   try {
-    const authToken = useCookie('auth.token');
-    if (!authToken.value) {
-      errorMessage.value = 'ログインしてください。';
-      throw new Error('ログインしてください。');
+    // 認証チェック
+    if (!checkAuth('記事を投稿するにはログインが必要です。')) {
+      return;
     }
 
     // 記事を投稿するAPIを呼び出す
@@ -109,8 +109,8 @@ const handleSubmit = async (): Promise<void> => {
     });
     
     if (error.value) {
-      errorMessage.value = 'ログイン情報が不正です。';
-      throw new Error('ログイン情報が不正です。');
+      errorMessage.value = error.value.statusMessage || 'ログイン情報が不正です。';
+      throw new Error(errorMessage.value);
     }
     
     if (data.value?.id) {
@@ -119,7 +119,7 @@ const handleSubmit = async (): Promise<void> => {
       errorMessage.value = '記事の投稿に失敗しました。';
     }
   } catch (error: unknown) {
-    errorMessage.value = '記事の投稿に失敗しました。';
+    errorMessage.value = errorMessage.value || '記事の投稿に失敗しました。';
     if (error instanceof Error) {
       console.error('記事の投稿に失敗しました:', error.message);
     }

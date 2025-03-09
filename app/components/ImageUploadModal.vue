@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
 import type { ImageItem } from '~/server/utils/s3';
 
 const props = defineProps({
@@ -26,8 +25,7 @@ const totalImages = ref<number>(0);
 const itemsPerPage = ref<number>(10);
 
 // 認証関連
-const { status } = useAuth();
-const authToken = useCookie('auth.token');
+const { status, authToken, checkAuth } = useAuthCheck(uploadStatus);
 
 // 表示するページ番号の数
 const maxPageButtons = 5;
@@ -60,15 +58,6 @@ const formatDate = (date: Date | string | undefined): string => {
   }
 };
 
-// 認証状態の確認
-const checkAuth = (): boolean => {
-  if (status.value !== 'authenticated' || !authToken.value) {
-    uploadStatus.value = 'エラー: ログインが必要です。';
-    return false;
-  }
-  return true;
-};
-
 // 最初のページに移動
 const goToFirstPage = (): void => {
   if (currentPage.value !== 1) {
@@ -85,27 +74,36 @@ const goToLastPage = (): void => {
 
 // 画像一覧を取得
 const fetchImages = async (page = 1): Promise<void> => {
-  if (!checkAuth()) return;
+  if (!checkAuth('画像一覧の取得にはログインが必要です。')) return;
   
   isLoading.value = true;
   try {
-    const response = await fetch(`/api/images?page=${page}&limit=${itemsPerPage.value}`, {
+    const { data, error } = await useFetch(`/api/images`, {
+      params: {
+        page,
+        limit: itemsPerPage.value
+      },
       headers: {
         'Authorization': `Bearer ${authToken.value}`
       }
     });
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.statusMessage || '画像一覧の取得に失敗しました');
+    if (error.value) {
+      throw new Error(error.value.statusMessage || '画像一覧の取得に失敗しました');
     }
     
-    const data = await response.json();
-    
-    images.value = data.images;
-    totalImages.value = data.total;
-    totalPages.value = data.totalPages;
-    currentPage.value = data.page;
+    if (data.value) {
+      // APIから返されたデータを適切な型に変換
+      images.value = data.value.images.map((img: any) => ({
+        key: img.key,
+        url: img.url,
+        size: img.size,
+        lastModified: img.lastModified ? new Date(img.lastModified) : undefined
+      }));
+      totalImages.value = data.value.total;
+      totalPages.value = data.value.totalPages;
+      currentPage.value = data.value.page;
+    }
   } catch (error: unknown) {
     console.error('画像一覧取得エラー:', error);
     if (error instanceof Error) {
@@ -120,7 +118,7 @@ const fetchImages = async (page = 1): Promise<void> => {
 
 // 画像を削除
 const deleteImage = async (image: ImageItem): Promise<void> => {
-  if (!checkAuth()) return;
+  if (!checkAuth('画像の削除にはログインが必要です。')) return;
   
   if (!confirm(`「${image.key.split('/').pop()}」を削除してもよろしいですか？`)) {
     return;
@@ -130,16 +128,15 @@ const deleteImage = async (image: ImageItem): Promise<void> => {
     // キーをエンコードしてURLに含める
     const encodedKey = encodeURIComponent(image.key);
     
-    const response = await fetch(`/api/images/${encodedKey}`, {
+    const { error } = await useFetch(`/api/images/${encodedKey}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authToken.value}`
       }
     });
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.statusMessage || '画像の削除に失敗しました');
+    if (error.value) {
+      throw new Error(error.value.statusMessage || '画像の削除に失敗しました');
     }
     
     // 削除成功
@@ -220,7 +217,7 @@ const handleFileChange = (event: Event): void => {
 };
 
 const uploadImage = async (): Promise<void> => {
-  if (!checkAuth()) return;
+  if (!checkAuth('画像のアップロードにはログインが必要です。')) return;
   
   if (!selectedFile.value) {
     uploadStatus.value = 'エラー: ファイルが選択されていません。';
@@ -234,7 +231,7 @@ const uploadImage = async (): Promise<void> => {
     const formData = new FormData();
     formData.append('image', selectedFile.value);
     
-    const response = await fetch('/api/images', {
+    const { data, error } = await useFetch('/api/images', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${authToken.value}`
@@ -242,20 +239,22 @@ const uploadImage = async (): Promise<void> => {
       body: formData
     });
     
-    const result = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(result.statusMessage || 'アップロードに失敗しました。');
+    if (error.value) {
+      throw new Error(error.value.statusMessage || 'アップロードに失敗しました。');
     }
     
     uploadStatus.value = 'アップロード成功！';
-    uploadedImageUrl.value = result.url;
+    if (data.value) {
+      uploadedImageUrl.value = data.value.url;
+    }
     
     // アップロード成功後に画像一覧を更新
     await fetchImages(1);
     
     // 親コンポーネントに通知
-    emit('image-uploaded', result.url);
+    if (data.value?.url) {
+      emit('image-uploaded', data.value.url);
+    }
   } catch (error: unknown) {
     console.error('アップロードエラー:', error);
     if (error instanceof Error) {

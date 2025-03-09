@@ -20,7 +20,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           LANGUAGE: Japanese
           OPENAI_API_ENDPOINT: https://api.openai.com/v1
-          MODEL: gpt-4o-mini
+          MODEL: gpt-4o-2024-11-20
           PROMPT: |
             あなたはシニアエンジニアです。回答は日本語でお願いします。
             誰にとっても読みやすいコードになるよう、改善点を見つけたら積極的にレビューしてください。

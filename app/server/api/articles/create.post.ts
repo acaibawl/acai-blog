@@ -17,19 +17,18 @@ export default defineEventHandler(async (event) => {
     await verifyAuth(event);
 
     // リクエストボディの取得と検証
-    const body = await readBody(event);
-    const result = articleSchema.safeParse(body);
+    const validationResult = articleSchema.safeParse(await readBody(event));
     
-    if (!result.success) {
+    if (!validationResult.success) {
       // バリデーションエラーの場合
-      const errorMessages = result.error.errors.map(err => err.message).join(', ');
+      const errorMessages = validationResult.error.errors.map(err => err.message).join(', ');
       throw createError({
         statusCode: 400,
         statusMessage: errorMessages,
       });
     }
     
-    const { title, body: content, thumbnail_url, main_image_url } = result.data;
+    const { title, body: content, thumbnail_url, main_image_url } = validationResult.data;
     
     // 記事の登録
     const prisma = new PrismaClient();
@@ -66,4 +65,4 @@ export default defineEventHandler(async (event) => {
     // 既に適切なエラーが生成されている場合はそのまま再スロー
     throw error;
   }
-}); 
+});

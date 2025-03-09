@@ -43,13 +43,12 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('画像削除エラー:', error);
     
-    if (!error.statusCode) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'サーバーエラーが発生しました',
-      });
+    if (error.statusCode) {
+      throw error;
     }
-    
-    throw error;
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'サーバーエラーが発生しました',
+    });
   }
 }); 

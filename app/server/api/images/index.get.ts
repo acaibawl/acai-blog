@@ -34,12 +34,12 @@ export default defineEventHandler(async (event): Promise<PaginatedResponse> => {
     const s3Client = createS3Client(minioConfig);
     
     // S3からオブジェクト一覧を取得
-    const listCommand = new ListObjectsV2Command({
+    const listObjectsCommand = new ListObjectsV2Command({
       Bucket: minioConfig.bucket,
       MaxKeys: 1000 // 最大1000件取得
     });
     
-    const response = await s3Client.send(listCommand);
+    const response = await s3Client.send(listObjectsCommand);
     
     // 画像ファイルのみをフィルタリング
     const imageFiles = filterImageFiles(response.Contents || []);
@@ -74,4 +74,4 @@ export default defineEventHandler(async (event): Promise<PaginatedResponse> => {
     console.error('画像一覧取得エラー:', error);
     throw error;
   }
-}); 
+});

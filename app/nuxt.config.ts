@@ -36,6 +36,11 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     jwtSecret: "",
+    minioEndpoint: "",
+    minioAccessKey: "",
+    minioSecretKey: "",
+    minioBucket: "",
+    minioImageUrlBase: "",
     public: {
       baseUrl: ""
     }

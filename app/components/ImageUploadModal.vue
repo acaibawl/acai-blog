@@ -101,7 +101,8 @@ const fetchImages = async (page = 1): Promise<void> => {
   
   isLoading.value = true;
   try {
-    const { data, error } = await useFetch<ImageListResponse>('/api/images', {
+    // useFetchだとonMountedで呼び出したときにデータが取得できない
+    const response = await $fetch<ImageListResponse>('/api/images', {
       params: {
         page,
         limit: itemsPerPage.value
@@ -111,22 +112,16 @@ const fetchImages = async (page = 1): Promise<void> => {
       }
     });
     
-    if (error.value) {
-      throw new Error(error.value.statusMessage || '画像一覧の取得に失敗しました');
-    }
-    
-    if (data.value) {
-      // APIから返されたデータを適切な型に変換
-      images.value = data.value.images.map((img) => ({
-        key: img.key,
-        url: img.url,
-        size: img.size,
-        lastModified: img.lastModified ? new Date(img.lastModified) : undefined
-      }));
-      totalImages.value = data.value.total;
-      totalPages.value = data.value.totalPages;
-      currentPage.value = data.value.page;
-    }
+    // APIから返されたデータを適切な型に変換
+    images.value = response.images.map((img) => ({
+      key: img.key,
+      url: img.url,
+      size: img.size,
+      lastModified: img.lastModified ? new Date(img.lastModified) : undefined
+    }));
+    totalImages.value = response.total;
+    totalPages.value = response.totalPages;
+    currentPage.value = response.page;
   } catch (error: unknown) {
     console.error('画像一覧取得エラー:', error);
     if (error instanceof Error) {

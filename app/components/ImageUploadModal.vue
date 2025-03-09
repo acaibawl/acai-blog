@@ -72,13 +72,36 @@ const goToLastPage = (): void => {
   }
 };
 
+// APIレスポンスの型定義
+interface ImageListResponse {
+  images: {
+    key: string;
+    url: string;
+    size?: number;
+    lastModified?: string;
+  }[];
+  total: number;
+  totalPages: number;
+  page: number;
+}
+
+interface ImageUploadResponse {
+  url: string;
+  key: string;
+}
+
+interface ImageDeleteResponse {
+  success: boolean;
+  message: string;
+}
+
 // 画像一覧を取得
 const fetchImages = async (page = 1): Promise<void> => {
   if (!checkAuth('画像一覧の取得にはログインが必要です。')) return;
   
   isLoading.value = true;
   try {
-    const { data, error } = await useFetch(`/api/images`, {
+    const { data, error } = await useFetch<ImageListResponse>('/api/images', {
       params: {
         page,
         limit: itemsPerPage.value
@@ -94,7 +117,7 @@ const fetchImages = async (page = 1): Promise<void> => {
     
     if (data.value) {
       // APIから返されたデータを適切な型に変換
-      images.value = data.value.images.map((img: any) => ({
+      images.value = data.value.images.map((img) => ({
         key: img.key,
         url: img.url,
         size: img.size,
@@ -119,7 +142,7 @@ const fetchImages = async (page = 1): Promise<void> => {
 // 画像を削除
 const deleteImage = async (image: ImageItem): Promise<void> => {
   if (!checkAuth('画像の削除にはログインが必要です。')) return;
-  
+
   if (!confirm(`「${image.key.split('/').pop()}」を削除してもよろしいですか？`)) {
     return;
   }
@@ -128,7 +151,7 @@ const deleteImage = async (image: ImageItem): Promise<void> => {
     // キーをエンコードしてURLに含める
     const encodedKey = encodeURIComponent(image.key);
     
-    const { error } = await useFetch(`/api/images/${encodedKey}`, {
+    const { error } = await useFetch<ImageDeleteResponse>(`/api/images/${encodedKey}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authToken.value}`
@@ -231,7 +254,7 @@ const uploadImage = async (): Promise<void> => {
     const formData = new FormData();
     formData.append('image', selectedFile.value);
     
-    const { data, error } = await useFetch('/api/images', {
+    const { data, error } = await useFetch<ImageUploadResponse>('/api/images', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${authToken.value}`

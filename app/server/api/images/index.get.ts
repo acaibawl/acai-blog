@@ -1,15 +1,12 @@
 import { defineEventHandler, getQuery } from 'h3';
-import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { verifyAuth } from '~/server/utils/auth';
 import { 
-  MinioConfig, 
   ImageItem, 
   PaginatedResponse, 
-  createS3Client, 
-  getMinioConfig, 
-  validateMinioConfig, 
   filterImageFiles,
-  generateImageUrl
+  generateImageUrl,
+  initializeS3Client
 } from '~/server/utils/s3';
 
 // 画像一覧を取得するAPI
@@ -24,14 +21,8 @@ export default defineEventHandler(async (event): Promise<PaginatedResponse> => {
     const page = parseInt(query.page as string) || 1;
     const limit = parseInt(query.limit as string) || 10;
     
-    // MinIO設定を取得
-    const minioConfig = getMinioConfig();
-    
-    // 設定を検証
-    validateMinioConfig(minioConfig);
-    
-    // S3クライアントの初期化
-    const s3Client = createS3Client(minioConfig);
+    // S3クライアントと設定を初期化
+    const { s3Client, minioConfig } = initializeS3Client();
     
     // S3からオブジェクト一覧を取得
     const listObjectsCommand = new ListObjectsV2Command({

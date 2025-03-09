@@ -1,7 +1,7 @@
 import { defineEventHandler, createError } from 'h3';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { verifyAuth } from '~/server/utils/auth';
-import { createS3Client, getMinioConfig, validateMinioConfig } from '~/server/utils/s3';
+import { initializeS3Client } from '~/server/utils/s3';
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,14 +17,8 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // MinIO設定を取得
-    const minioConfig = getMinioConfig();
-    
-    // 設定を検証
-    validateMinioConfig(minioConfig);
-
-    // S3クライアントを作成
-    const s3Client = createS3Client(minioConfig);
+    // S3クライアントと設定を初期化
+    const { s3Client, minioConfig } = initializeS3Client();
 
     // 画像を削除
     const decodedKey = decodeURIComponent(key);

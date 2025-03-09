@@ -115,4 +115,21 @@ export const generateImageUrl = (key: string, config: MinioConfig): string => {
   const processedKey = key.startsWith('/') ? key.substring(1) : key;
   
   return `${baseUrl}${config.bucket}/${processedKey}`;
+};
+
+/**
+ * MinIO設定を取得し、検証して、S3クライアントを初期化する共通関数
+ * @returns S3クライアントとMinIO設定
+ */
+export const initializeS3Client = (): { s3Client: any; minioConfig: MinioConfig } => {
+  // MinIO設定を取得
+  const minioConfig = getMinioConfig();
+  
+  // 設定を検証
+  validateMinioConfig(minioConfig);
+  
+  // S3クライアントを作成
+  const s3Client = createS3Client(minioConfig);
+  
+  return { s3Client, minioConfig };
 }; 

@@ -1,19 +1,12 @@
-import { defineEventHandler, createError } from 'h3';
+import { defineEventHandler, createError, readMultipartFormData } from 'h3';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
-import fs from 'fs';
+import path from 'path';
+import { randomUUID } from 'crypto';
 import { verifyAuth } from '~/server/utils/auth';
 import { 
-  createS3Client, 
-  getMinioConfig, 
-  validateMinioConfig,
-  generateImageUrl
+  generateImageUrl,
+  initializeS3Client
 } from '~/server/utils/s3';
-import {
-  parseFile,
-  validateFileType,
-  generateFileName,
-  getFilePath
-} from '~/server/utils/fileUpload';
 
 // レスポンスの型定義
 interface UploadResponse {
@@ -22,16 +15,23 @@ interface UploadResponse {
   fileName: string;
 }
 
+// 許可されているMIMEタイプ
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+// ファイル名の生成
+const generateFileName = (originalName: string = 'unknown.jpg'): string => {
+  const fileExt = path.extname(originalName) || '.jpg';
+  return `${randomUUID()}${fileExt}`;
+};
+
 // S3へのアップロード
 const uploadToS3 = async (
   s3Client: any, 
   bucketName: string, 
   fileName: string, 
-  filePath: string, 
+  fileContent: Buffer, 
   contentType: string
 ): Promise<void> => {
-  const fileContent = fs.readFileSync(filePath);
-  
   const putCommand = new PutObjectCommand({
     Bucket: bucketName,
     Key: fileName,
@@ -40,9 +40,6 @@ const uploadToS3 = async (
   });
 
   await s3Client.send(putCommand);
-  
-  // 一時ファイルを削除
-  fs.unlinkSync(filePath);
 };
 
 // メインハンドラー
@@ -51,43 +48,41 @@ export default defineEventHandler(async (event): Promise<UploadResponse> => {
     // 認証チェック
     await verifyAuth(event);
     
-    // MinIO設定を取得
-    const minioConfig = getMinioConfig();
-    
-    // 設定を検証
-    validateMinioConfig(minioConfig);
-    
-    // S3クライアントを作成
-    const s3Client = createS3Client(minioConfig);
+    // S3クライアントと設定を初期化
+    const { s3Client, minioConfig } = initializeS3Client();
 
-    // ファイルをパース
-    const { files } = await parseFile(event.node.req);
+    // マルチパートフォームデータを読み込む
+    const formData = await readMultipartFormData(event);
+    if (!formData || formData.length === 0) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'ファイルが見つかりません。'
+      });
+    }
     
-    // ファイルが存在するか確認
-    let imageFile = files.image;
-    if (!imageFile) {
+    // フォームデータから画像ファイルを取得
+    const imageFile = formData.find(part => part.name === 'image');
+    if (!imageFile || !imageFile.data) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ファイルが見つかりません。'
       });
     }
 
-    // 配列の場合は最初の要素を使用
-    if (Array.isArray(imageFile)) {
-      imageFile = imageFile[0];
+    // ファイルタイプの検証
+    const mimeType = imageFile.type || '';
+    if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '許可されていないファイル形式です。JPEG、PNG、GIF、WEBPのみ許可されています。'
+      });
     }
 
-    // ファイルタイプの検証
-    const mimeType = validateFileType(imageFile);
-
     // ファイル名の生成
-    const fileName = generateFileName(imageFile);
-
-    // ファイルパスの取得
-    const filePath = getFilePath(imageFile);
+    const fileName = generateFileName(imageFile.filename);
 
     // S3にアップロード
-    await uploadToS3(s3Client, minioConfig.bucket, fileName, filePath, mimeType);
+    await uploadToS3(s3Client, minioConfig.bucket, fileName, imageFile.data, mimeType);
 
     // 画像のURLを生成
     const imageUrl = generateImageUrl(fileName, minioConfig);

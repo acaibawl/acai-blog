@@ -113,8 +113,8 @@ export const generateImageUrl = (key: string, config: MinioConfig): string => {
   
   // キーの先頭のスラッシュを処理
   const processedKey = key.startsWith('/') ? key.substring(1) : key;
-  
-  return `${baseUrl}${config.bucket}/${processedKey}`;
+  // 本番環境では、baseUrlにバケット名が含まれているので、そのまま返す（minIOとS3の違い）
+  return process.env.NODE_ENV === 'production' ?  `${baseUrl}${processedKey}` : `${baseUrl}${config.bucket}/${processedKey}`;
 };
 
 /**

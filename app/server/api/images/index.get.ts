@@ -37,8 +37,8 @@ export default defineEventHandler(async (event): Promise<PaginatedResponse> => {
     
     // 日時の降順でソート
     imageFiles.sort((a, b) => {
-      const dateA = a.LastModified ? new Date(a.LastModified).getTime() : 0;
-      const dateB = b.LastModified ? new Date(b.LastModified).getTime() : 0;
+      const dateA = new Date(a.LastModified || 0).getTime();
+      const dateB = new Date(b.LastModified || 0).getTime();
       return dateB - dateA; // 降順
     });
     

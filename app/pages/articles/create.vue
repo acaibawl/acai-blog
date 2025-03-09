@@ -3,6 +3,9 @@ import ImageUploadModal from '~/components/ImageUploadModal.vue';
 
 useHead({
   title: '記事投稿',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' }
+  ]
 });
 
 const title = ref<string>('');

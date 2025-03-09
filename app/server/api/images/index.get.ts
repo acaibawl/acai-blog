@@ -35,6 +35,13 @@ export default defineEventHandler(async (event): Promise<PaginatedResponse> => {
     // 画像ファイルのみをフィルタリング
     const imageFiles = filterImageFiles(response.Contents || []);
     
+    // 日時の降順でソート
+    imageFiles.sort((a, b) => {
+      const dateA = a.LastModified ? new Date(a.LastModified).getTime() : 0;
+      const dateB = b.LastModified ? new Date(b.LastModified).getTime() : 0;
+      return dateB - dateA; // 降順
+    });
+    
     // 総件数
     const total = imageFiles.length;
     

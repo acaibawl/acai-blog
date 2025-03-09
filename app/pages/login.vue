@@ -9,6 +9,9 @@ definePageMeta({
 
 useHead({
   title: 'ログイン',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' }
+  ]
 });
 
 const { signIn, status } = useAuth();

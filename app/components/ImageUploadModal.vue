@@ -1,5 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import type { ImageItem } from '~/server/utils/s3';
 
 const props = defineProps({
   isOpen: {
@@ -10,19 +11,19 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'image-uploaded']);
 
-const selectedFile = ref(null);
-const previewUrl = ref('');
-const isUploading = ref(false);
-const uploadStatus = ref('');
-const uploadedImageUrl = ref('');
+const selectedFile = ref<File | null>(null);
+const previewUrl = ref<string>('');
+const isUploading = ref<boolean>(false);
+const uploadStatus = ref<string>('');
+const uploadedImageUrl = ref<string>('');
 
 // 画像一覧関連の状態
-const images = ref([]);
-const isLoading = ref(false);
-const currentPage = ref(1);
-const totalPages = ref(0);
-const totalImages = ref(0);
-const itemsPerPage = ref(10);
+const images = ref<ImageItem[]>([]);
+const isLoading = ref<boolean>(false);
+const currentPage = ref<number>(1);
+const totalPages = ref<number>(0);
+const totalImages = ref<number>(0);
+const itemsPerPage = ref<number>(10);
 
 // 認証関連
 const { status } = useAuth();
@@ -48,8 +49,19 @@ const pageNumbers = computed(() => {
   return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
 });
 
+// 日付のフォーマット
+const formatDate = (date: Date | string | undefined): string => {
+  if (!date) return '日付なし';
+  
+  try {
+    return new Date(date).toLocaleString();
+  } catch (error) {
+    return '無効な日付';
+  }
+};
+
 // 認証状態の確認
-const checkAuth = () => {
+const checkAuth = (): boolean => {
   if (status.value !== 'authenticated' || !authToken.value) {
     uploadStatus.value = 'エラー: ログインが必要です。';
     return false;
@@ -58,21 +70,21 @@ const checkAuth = () => {
 };
 
 // 最初のページに移動
-const goToFirstPage = () => {
+const goToFirstPage = (): void => {
   if (currentPage.value !== 1) {
     changePage(1);
   }
 };
 
 // 最後のページに移動
-const goToLastPage = () => {
+const goToLastPage = (): void => {
   if (currentPage.value !== totalPages.value) {
     changePage(totalPages.value);
   }
 };
 
 // 画像一覧を取得
-const fetchImages = async (page = 1) => {
+const fetchImages = async (page = 1): Promise<void> => {
   if (!checkAuth()) return;
   
   isLoading.value = true;
@@ -94,16 +106,20 @@ const fetchImages = async (page = 1) => {
     totalImages.value = data.total;
     totalPages.value = data.totalPages;
     currentPage.value = data.page;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('画像一覧取得エラー:', error);
-    uploadStatus.value = `エラー: ${error.message}`;
+    if (error instanceof Error) {
+      uploadStatus.value = `エラー: ${error.message}`;
+    } else {
+      uploadStatus.value = 'エラー: 不明なエラーが発生しました';
+    }
   } finally {
     isLoading.value = false;
   }
 };
 
 // 画像を削除
-const deleteImage = async (image) => {
+const deleteImage = async (image: ImageItem): Promise<void> => {
   if (!checkAuth()) return;
   
   if (!confirm(`「${image.key.split('/').pop()}」を削除してもよろしいですか？`)) {
@@ -138,35 +154,39 @@ const deleteImage = async (image) => {
         uploadStatus.value = '';
       }
     }, 3000);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('画像削除エラー:', error);
-    uploadStatus.value = `エラー: ${error.message}`;
+    if (error instanceof Error) {
+      uploadStatus.value = `エラー: ${error.message}`;
+    } else {
+      uploadStatus.value = 'エラー: 不明なエラーが発生しました';
+    }
   }
 };
 
 // ページを変更
-const changePage = (page) => {
+const changePage = (page: number): void => {
   if (page < 1 || page > totalPages.value) return;
   currentPage.value = page;
   fetchImages(page);
 };
 
 // 前のページへ
-const prevPage = () => {
+const prevPage = (): void => {
   if (currentPage.value > 1) {
     changePage(currentPage.value - 1);
   }
 };
 
 // 次のページへ
-const nextPage = () => {
+const nextPage = (): void => {
   if (currentPage.value < totalPages.value) {
     changePage(currentPage.value + 1);
   }
 };
 
 // 画像をクリップボードにコピー
-const copyImageUrl = (url) => {
+const copyImageUrl = (url: string): void => {
   navigator.clipboard.writeText(url)
     .then(() => {
       alert('画像URLをクリップボードにコピーしました');
@@ -177,26 +197,29 @@ const copyImageUrl = (url) => {
 };
 
 // 画像を選択して親コンポーネントに通知
-const selectImage = (url) => {
+const selectImage = (url: string): void => {
   emit('image-uploaded', url);
   closeModal();
 };
 
-const handleFileChange = (event) => {
-  const file = event.target.files[0];
+const handleFileChange = (event: Event): void => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
   if (!file) return;
   
   selectedFile.value = file;
   
   // プレビュー用のURLを作成
   const reader = new FileReader();
-  reader.onload = (e) => {
-    previewUrl.value = e.target.result;
+  reader.onload = (e: ProgressEvent<FileReader>) => {
+    if (e.target?.result) {
+      previewUrl.value = e.target.result as string;
+    }
   };
   reader.readAsDataURL(file);
 };
 
-const uploadImage = async () => {
+const uploadImage = async (): Promise<void> => {
   if (!checkAuth()) return;
   
   if (!selectedFile.value) {
@@ -233,26 +256,30 @@ const uploadImage = async () => {
     
     // 親コンポーネントに通知
     emit('image-uploaded', result.url);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('アップロードエラー:', error);
-    uploadStatus.value = `エラー: ${error.message}`;
+    if (error instanceof Error) {
+      uploadStatus.value = `エラー: ${error.message}`;
+    } else {
+      uploadStatus.value = 'エラー: 不明なエラーが発生しました';
+    }
   } finally {
     isUploading.value = false;
   }
 };
 
-const resetForm = () => {
+const resetForm = (): void => {
   selectedFile.value = null;
   previewUrl.value = '';
   uploadStatus.value = '';
   uploadedImageUrl.value = '';
   
   // ファイル入力をリセット
-  const fileInput = document.getElementById('file-input');
+  const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
   if (fileInput) fileInput.value = '';
 };
 
-const closeModal = () => {
+const closeModal = (): void => {
   emit('close');
 };
 
@@ -351,7 +378,7 @@ onMounted(() => {
                 </div>
                 <div class="image-info">
                   <p class="image-name">{{ image.key.split('/').pop() }}</p>
-                  <p class="image-date">{{ new Date(image.lastModified).toLocaleString() }}</p>
+                  <p class="image-date">{{ formatDate(image.lastModified) }}</p>
                   <div class="image-actions">
                     <button @click="copyImageUrl(image.url)" class="copy-url-button">
                       URLをコピー

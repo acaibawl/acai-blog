@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ImageUploadModal from '~/components/ImageUploadModal.vue';
@@ -7,36 +7,36 @@ useHead({
   title: '記事投稿',
 });
 
-const title = ref('');
-const body = ref('');
-const errorMessage = ref('');
-const showPreview = ref(false);
-const showImageUploadModal = ref(false);
-const thumbnailUrl = ref(''); // サムネイル画像URL
-const mainImageUrl = ref(''); // メイン画像URL
-const isForThumbnail = ref(false); // サムネイル用の画像選択モード
-const isForMainImage = ref(false); // メイン画像用の画像選択モード
+const title = ref<string>('');
+const body = ref<string>('');
+const errorMessage = ref<string>('');
+const showPreview = ref<boolean>(false);
+const showImageUploadModal = ref<boolean>(false);
+const thumbnailUrl = ref<string>(''); // サムネイル画像URL
+const mainImageUrl = ref<string>(''); // メイン画像URL
+const isForThumbnail = ref<boolean>(false); // サムネイル用の画像選択モード
+const isForMainImage = ref<boolean>(false); // メイン画像用の画像選択モード
 const router = useRouter();
 
 // テキストエリアの参照を保持
-const bodyTextarea = ref(null);
+const bodyTextarea = ref<HTMLTextAreaElement | null>(null);
 
-const togglePreview = () => {
+const togglePreview = (): void => {
   showPreview.value = !showPreview.value;
 };
 
-const openImageUploadModal = (mode = 'content') => {
+const openImageUploadModal = (mode = 'content'): void => {
   isForThumbnail.value = mode === 'thumbnail';
   isForMainImage.value = mode === 'main';
   showImageUploadModal.value = true;
 };
 
-const closeImageUploadModal = () => {
+const closeImageUploadModal = (): void => {
   showImageUploadModal.value = false;
 };
 
 // 画像URLを受け取ってMarkdownの画像タグを挿入する
-const handleImageUploaded = (imageUrl) => {
+const handleImageUploaded = (imageUrl: string): void => {
   if (isForThumbnail.value) {
     // サムネイル画像として設定
     thumbnailUrl.value = imageUrl;
@@ -51,8 +51,8 @@ const handleImageUploaded = (imageUrl) => {
     // テキストエリアにフォーカスがある場合はカーソル位置に挿入
     if (bodyTextarea.value) {
       const textarea = bodyTextarea.value;
-      const startPos = textarea.selectionStart;
-      const endPos = textarea.selectionEnd;
+      const startPos = textarea.selectionStart || 0;
+      const endPos = textarea.selectionEnd || 0;
       
       // 現在のテキストを取得
       const currentText = body.value;
@@ -77,16 +77,16 @@ const handleImageUploaded = (imageUrl) => {
 };
 
 // サムネイル画像をクリア
-const clearThumbnail = () => {
+const clearThumbnail = (): void => {
   thumbnailUrl.value = '';
 };
 
 // メイン画像をクリア
-const clearMainImage = () => {
+const clearMainImage = (): void => {
   mainImageUrl.value = '';
 };
 
-const handleSubmit = async () => {
+const handleSubmit = async (): Promise<void> => {
   try {
     const authToken = useCookie('auth.token');
     if (!authToken.value) {
@@ -113,10 +113,16 @@ const handleSubmit = async () => {
       throw new Error('ログイン情報が不正です。');
     }
     
-    router.push(`/articles/${data.value.id}`);
-  } catch (error) {
+    if (data.value?.id) {
+      router.push(`/articles/${data.value.id}`);
+    } else {
+      errorMessage.value = '記事の投稿に失敗しました。';
+    }
+  } catch (error: unknown) {
     errorMessage.value = '記事の投稿に失敗しました。';
-    console.error('記事の投稿に失敗しました:', error.message);
+    if (error instanceof Error) {
+      console.error('記事の投稿に失敗しました:', error.message);
+    }
   }
 };
 </script> 

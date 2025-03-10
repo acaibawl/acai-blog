@@ -95,7 +95,7 @@ useHead({
 }
 .markdown-preview iframe {
   width: 100%;
-  max-width: 560px; /* 最大幅はYoutubeで貼り付けコピー取得時の幅 */
+  max-width: 560px; /* デフォルトの埋め込み幅を再現しつつ、レスポンシブ対応 */
   aspect-ratio: 16 / 9;
   border: none;
 }

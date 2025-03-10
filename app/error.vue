@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useError } from '#app'
+import { useError } from '#app';
 const error = useError();
 console.error(error);
 </script>

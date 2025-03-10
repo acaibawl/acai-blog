@@ -18,9 +18,9 @@ useHead({
     { hid: 'twitter:card', name: 'twitter:card', content: 'summary_large_image' },
     { hid: 'twitter:title', name: 'twitter:title', content: `記事一覧ページです` },
     { hid: 'twitter:description', name: 'twitter:description', content: '記事一覧ページです。' },
-    { hid: 'twitter:image', name: 'twitter:image', content:  ogImage}
-  ]
-})
+    { hid: 'twitter:image', name: 'twitter:image', content: ogImage },
+  ],
+});
 
 // useFetch を使って /api/articles?page=1 から記事データを取得
 const { data, error } = await useFetch<ArticlesResponse>(`/api/articles?page=${props.page}`);
@@ -34,20 +34,22 @@ const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png
 </script>
 
 <template>
-  <div class="grid">
-    <template v-for="article in data?.articles" :key="article.id">
-      <a :href="`/articles/${article.id}`">
-        <div class="card">
-          <img :src="thumbnailUrl(article.thumbnail_url)" :alt="article.title">
-          <div class="card-content">
-            <div class="card-title">{{ article.title }}</div>
+  <div>
+    <div class="grid">
+      <template v-for="article in data?.articles" :key="article.id">
+        <a :href="`/articles/${article.id}`">
+          <div class="card">
+            <img :src="thumbnailUrl(article.thumbnail_url)" :alt="article.title">
+            <div class="card-content">
+              <div class="card-title">{{ article.title }}</div>
+            </div>
+            <time :datetime="dayjs(article.created_at).format('YYYY-MM-DD')">{{ new Date(article.created_at).toLocaleDateString("ja-JP")}}</time>
           </div>
-          <time :datetime="dayjs(article.created_at).format('YYYY-MM-DD')">{{ new Date(article.created_at).toLocaleDateString("ja-JP")}}</time>
-        </div>
-      </a>
-    </template>
+        </a>
+      </template>
+    </div>
+    <ArticleListPagination :page="props.page" :all-articles-count="data!.allArticlesCount" />
   </div>
-  <ArticleListPagination :page="props.page" :allArticlesCount="data!.allArticlesCount" />
 </template>
 
 <style scoped>

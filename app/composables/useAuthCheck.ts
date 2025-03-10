@@ -20,12 +20,12 @@ export const useAuthCheck = (errorMessageRef?: Ref<string>) => {
   const checkAuth = (customErrorMessage: string = 'ログインが必要です。'): boolean => {
     if (status.value !== 'authenticated' || !authToken.value) {
       const errorMsg = `エラー: ${customErrorMessage}`;
-      
+
       // 外部から提供されたエラーメッセージrefがある場合はそちらも更新
       if (errorMessageRef) {
         errorMessageRef.value = errorMsg;
       }
-      
+
       // 内部のエラーメッセージも更新
       authError.value = errorMsg;
       return false;
@@ -48,9 +48,9 @@ export const useAuthCheck = (errorMessageRef?: Ref<string>) => {
   const getAuthHeaders = (): Record<string, string> | null => {
     const token = getAuthToken();
     if (!token) return null;
-    
+
     return {
-      'Authorization': `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     };
   };
 
@@ -60,6 +60,6 @@ export const useAuthCheck = (errorMessageRef?: Ref<string>) => {
     authError,
     checkAuth,
     getAuthToken,
-    getAuthHeaders
+    getAuthHeaders,
   };
-}; 
+};

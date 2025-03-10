@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { ImageItem } from '~/server/utils/s3';
 
-const props = defineProps({
+defineProps({
   isOpen: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
 const emit = defineEmits(['close', 'image-uploaded']);
@@ -33,16 +33,16 @@ const maxPageButtons = 5;
 // 表示するページ番号の配列を計算
 const pageNumbers = computed(() => {
   if (totalPages.value <= 1) return [];
-  
+
   // 表示するページ番号の範囲を計算
   let startPage = Math.max(1, currentPage.value - Math.floor(maxPageButtons / 2));
-  let endPage = Math.min(totalPages.value, startPage + maxPageButtons - 1);
-  
+  const endPage = Math.min(totalPages.value, startPage + maxPageButtons - 1);
+
   // 最大表示数に満たない場合、startPageを調整
   if (endPage - startPage + 1 < maxPageButtons) {
     startPage = Math.max(1, endPage - maxPageButtons + 1);
   }
-  
+
   // ページ番号の配列を生成
   return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
 });
@@ -50,10 +50,10 @@ const pageNumbers = computed(() => {
 // 日付のフォーマット
 const formatDate = (date: Date | string | undefined): string => {
   if (!date) return '日付なし';
-  
+
   try {
     return new Date(date).toLocaleString();
-  } catch (error) {
+  } catch {
     return '無効な日付';
   }
 };
@@ -98,26 +98,26 @@ interface ImageDeleteResponse {
 // 画像一覧を取得
 const fetchImages = async (page = 1): Promise<void> => {
   if (!checkAuth('画像一覧の取得にはログインが必要です。')) return;
-  
+
   isLoading.value = true;
   try {
     // useFetchだとonMountedで呼び出したときにデータが取得できない
     const response = await $fetch<ImageListResponse>('/api/images', {
       params: {
         page,
-        limit: itemsPerPage.value
+        limit: itemsPerPage.value,
       },
       headers: {
-        'Authorization': `Bearer ${authToken.value}`
-      }
+        Authorization: `Bearer ${authToken.value}`,
+      },
     });
-    
+
     // APIから返されたデータを適切な型に変換
-    images.value = response.images.map((img) => ({
+    images.value = response.images.map(img => ({
       key: img.key,
       url: img.url,
       size: img.size,
-      lastModified: img.lastModified ? new Date(img.lastModified) : undefined
+      lastModified: img.lastModified ? new Date(img.lastModified) : undefined,
     }));
     totalImages.value = response.total;
     totalPages.value = response.totalPages;
@@ -141,28 +141,28 @@ const deleteImage = async (image: ImageItem): Promise<void> => {
   if (!confirm(`「${image.key.split('/').pop()}」を削除してもよろしいですか？`)) {
     return;
   }
-  
+
   try {
     // キーをエンコードしてURLに含める
     const encodedKey = encodeURIComponent(image.key);
-    
+
     const { error } = await useFetch<ImageDeleteResponse>(`/api/images/${encodedKey}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${authToken.value}`
-      }
+        Authorization: `Bearer ${authToken.value}`,
+      },
     });
-    
+
     if (error.value) {
       throw new Error(error.value.statusMessage || '画像の削除に失敗しました');
     }
-    
+
     // 削除成功
     uploadStatus.value = '画像を削除しました';
-    
+
     // 画像一覧を更新
     await fetchImages(currentPage.value);
-    
+
     // 3秒後にステータスメッセージをクリア
     setTimeout(() => {
       if (uploadStatus.value === '画像を削除しました') {
@@ -206,7 +206,7 @@ const copyImageUrl = (url: string): void => {
     .then(() => {
       alert('画像URLをクリップボードにコピーしました');
     })
-    .catch(err => {
+    .catch((err) => {
       console.error('クリップボードへのコピーに失敗しました:', err);
     });
 };
@@ -221,9 +221,9 @@ const handleFileChange = (event: Event): void => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (!file) return;
-  
+
   selectedFile.value = file;
-  
+
   // プレビュー用のURLを作成
   const reader = new FileReader();
   reader.onload = (e: ProgressEvent<FileReader>) => {
@@ -236,7 +236,7 @@ const handleFileChange = (event: Event): void => {
 
 const uploadImage = async (): Promise<void> => {
   if (!checkAuth('画像のアップロードにはログインが必要です。')) return;
-  
+
   if (!selectedFile.value) {
     uploadStatus.value = 'エラー: ファイルが選択されていません。';
     return;
@@ -244,31 +244,31 @@ const uploadImage = async (): Promise<void> => {
 
   isUploading.value = true;
   uploadStatus.value = 'アップロード中...';
-  
+
   try {
     const formData = new FormData();
     formData.append('image', selectedFile.value);
-    
+
     const { data, error } = await useFetch<ImageUploadResponse>('/api/images', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${authToken.value}`
+        Authorization: `Bearer ${authToken.value}`,
       },
-      body: formData
+      body: formData,
     });
-    
+
     if (error.value) {
       throw new Error(error.value.statusMessage || 'アップロードに失敗しました。');
     }
-    
+
     uploadStatus.value = 'アップロード成功！';
     if (data.value) {
       uploadedImageUrl.value = data.value.url;
     }
-    
+
     // アップロード成功後に画像一覧を更新
     await fetchImages(1);
-    
+
     // 親コンポーネントに通知
     if (data.value?.url) {
       emit('image-uploaded', data.value.url);
@@ -290,7 +290,7 @@ const resetForm = (): void => {
   previewUrl.value = '';
   uploadStatus.value = '';
   uploadedImageUrl.value = '';
-  
+
   // ファイル入力をリセット
   const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
   if (fileInput) fileInput.value = '';
@@ -315,160 +315,160 @@ onMounted(() => {
         <h2 class="modal-title">画像アップロード</h2>
         <button class="close-button" @click="closeModal">&times;</button>
       </div>
-      
+
       <div class="modal-body">
         <div v-if="status !== 'authenticated'" class="auth-message">
           <p>画像のアップロードと閲覧にはログインが必要です。</p>
         </div>
-        
+
         <div v-else>
           <div class="upload-form">
             <div class="form-group">
               <label for="file-input" class="form-label">画像ファイルを選択</label>
               <div class="file-input-button">
                 ファイルを選択
-                <input 
-                  type="file" 
+                <input
                   id="file-input"
-                  accept="image/*" 
-                  @change="handleFileChange" 
+                  type="file"
+                  accept="image/*"
                   class="file-input-hidden"
-                />
+                  @change="handleFileChange"
+                >
               </div>
               <span v-if="selectedFile" class="selected-file-name">
                 {{ selectedFile.name }}
               </span>
             </div>
-            
+
             <div v-if="previewUrl" class="preview-container">
               <h3>プレビュー</h3>
-              <img :src="previewUrl" alt="プレビュー" class="image-preview" />
+              <img :src="previewUrl" alt="プレビュー" class="image-preview" >
             </div>
-            
+
             <div class="form-actions">
-              <button 
-                @click="uploadImage" 
-                class="upload-button" 
+              <button
+                class="upload-button"
                 :disabled="!selectedFile || isUploading"
+                @click="uploadImage"
               >
                 {{ isUploading ? 'アップロード中...' : 'アップロード' }}
               </button>
-              <button 
-                @click="resetForm" 
-                class="reset-button" 
+              <button
+                class="reset-button"
                 :disabled="isUploading"
+                @click="resetForm"
               >
                 リセット
               </button>
             </div>
-            
+
             <div v-if="uploadStatus" :class="['status-message', { 'error': uploadStatus.includes('エラー') }]">
               {{ uploadStatus }}
             </div>
-            
+
             <div v-if="uploadedImageUrl" class="uploaded-image-info">
               <h3>アップロード完了</h3>
               <p>画像URL: <a :href="uploadedImageUrl" target="_blank">{{ uploadedImageUrl }}</a></p>
-              <button @click="selectImage(uploadedImageUrl)" class="select-image-button">
+              <button class="select-image-button" @click="selectImage(uploadedImageUrl)">
                 この画像を選択
               </button>
-              <img :src="uploadedImageUrl" alt="アップロードされた画像" class="uploaded-image-preview" />
+              <img :src="uploadedImageUrl" alt="アップロードされた画像" class="uploaded-image-preview" >
             </div>
           </div>
-          
+
           <!-- 画像一覧セクション -->
           <div class="image-gallery-section">
             <h3 class="section-title">アップロード済み画像一覧</h3>
-            
+
             <div v-if="isLoading" class="loading-indicator">
               <p>読み込み中...</p>
             </div>
-            
+
             <div v-else-if="images.length === 0" class="no-images-message">
               <p>アップロードされた画像はありません</p>
             </div>
-            
+
             <div v-else class="image-gallery">
               <div v-for="image in images" :key="image.key" class="image-card">
                 <div class="image-container">
-                  <img :src="image.url" :alt="image.key" class="gallery-image" />
+                  <img :src="image.url" :alt="image.key" class="gallery-image" >
                 </div>
                 <div class="image-info">
                   <p class="image-name">{{ image.key.split('/').pop() }}</p>
                   <p class="image-date">{{ formatDate(image.lastModified) }}</p>
                   <div class="image-actions">
-                    <button @click="copyImageUrl(image.url)" class="copy-url-button">
+                    <button class="copy-url-button" @click="copyImageUrl(image.url)">
                       URLをコピー
                     </button>
-                    <button @click="selectImage(image.url)" class="select-image-button">
+                    <button class="select-image-button" @click="selectImage(image.url)">
                       選択
                     </button>
-                    <button @click="deleteImage(image)" class="delete-image-button">
+                    <button class="delete-image-button" @click="deleteImage(image)">
                       削除
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <!-- ページネーション -->
             <div v-if="totalPages > 1" class="pagination">
               <!-- 最初のページへ -->
-              <button 
-                @click="goToFirstPage" 
+              <button
                 class="pagination-button pagination-nav"
                 :disabled="currentPage <= 1"
                 title="最初のページへ"
+                @click="goToFirstPage"
               >
                 &laquo;
               </button>
-              
+
               <!-- 前のページへ -->
-              <button 
-                @click="prevPage" 
+              <button
                 class="pagination-button pagination-nav"
                 :disabled="currentPage <= 1"
                 title="前のページへ"
+                @click="prevPage"
               >
                 &lsaquo;
               </button>
-              
+
               <!-- ページ番号 -->
               <div class="pagination-numbers">
-                <button 
-                  v-for="page in pageNumbers" 
+                <button
+                  v-for="page in pageNumbers"
                   :key="page"
-                  @click="changePage(page)"
                   :class="[
-                    'pagination-button', 
-                    'pagination-number', 
+                    'pagination-button',
+                    'pagination-number',
                     { 'active': page === currentPage }
                   ]"
+                  @click="changePage(page)"
                 >
                   {{ page }}
                 </button>
               </div>
-              
+
               <!-- 次のページへ -->
-              <button 
-                @click="nextPage" 
+              <button
                 class="pagination-button pagination-nav"
                 :disabled="currentPage >= totalPages"
                 title="次のページへ"
+                @click="nextPage"
               >
                 &rsaquo;
               </button>
-              
+
               <!-- 最後のページへ -->
-              <button 
-                @click="goToLastPage" 
+              <button
                 class="pagination-button pagination-nav"
                 :disabled="currentPage >= totalPages"
                 title="最後のページへ"
+                @click="goToLastPage"
               >
                 &raquo;
               </button>
-              
+
               <div class="pagination-info">
                 (全{{ totalImages }}件)
               </div>
@@ -882,11 +882,11 @@ button:disabled {
   .image-gallery {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
-  
+
   .pagination {
     gap: 3px;
   }
-  
+
   .pagination-button {
     padding: 5px 8px;
     min-width: 28px;
@@ -899,17 +899,17 @@ button:disabled {
     width: 95%;
     max-height: 95vh;
   }
-  
+
   .image-gallery {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
-  
+
   .pagination {
     flex-wrap: wrap;
     justify-content: center;
     gap: 5px;
   }
-  
+
   .pagination-info {
     width: 100%;
     text-align: center;
@@ -917,4 +917,4 @@ button:disabled {
     margin-left: 0;
   }
 }
-</style> 
+</style>

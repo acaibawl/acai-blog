@@ -3,15 +3,15 @@ import type { JwtPayload } from '~/types/JwtPayload';
 
 useHead({
   meta: [
-    { name: "viewport", content: "width=device-width, initial-scale=1.0" },
-    { charset: "utf-8" }
+    { name: 'viewport', content: 'width=device-width, initial-scale=1.0' },
+    { charset: 'utf-8' },
   ],
   titleTemplate: (titleChunk) => {
     return titleChunk ? `${titleChunk} | 浅井ブログ` : '浅井ブログ';
   },
   htmlAttrs: {
-    lang: "ja"
-  }
+    lang: 'ja',
+  },
 });
 const { signOut, status, data } = useAuth();
 const jwtPayload = computed<JwtPayload | null>(() => {
@@ -20,23 +20,27 @@ const jwtPayload = computed<JwtPayload | null>(() => {
 </script>
 
 <template>
-  <header>
-    <div class="header-container">
-      <h1><NuxtLink to="/">浅井ブログ</NuxtLink></h1>
-      <div v-if="status === 'authenticated'" class="admin-controls">
-        <p class="admin-name">管理者：{{ jwtPayload?.name }}</p>
-        <button @click="signOut({ callbackUrl: '/' })" class="logout-button">Logout</button>
+  <div>
+    <header>
+      <div class="header-container">
+        <h1>
+          <NuxtLink to="/">浅井ブログ</NuxtLink>
+        </h1>
+        <div v-if="status === 'authenticated'" class="admin-controls">
+          <p class="admin-name">管理者：{{ jwtPayload?.name }}</p>
+          <button class="logout-button" @click="signOut({ callbackUrl: '/' })">Logout</button>
+        </div>
       </div>
-    </div>
-  </header>
-  <main>
-    <div class="container">
-      <slot />
-    </div>
-  </main>
-  <footer>
-    © Copyright 2025 浅井 All rights reserved.
-  </footer>
+    </header>
+    <main>
+      <div class="container">
+        <slot />
+      </div>
+    </main>
+    <footer>
+      © Copyright 2025 浅井 All rights reserved.
+    </footer>
+  </div>
 </template>
 
 <style>

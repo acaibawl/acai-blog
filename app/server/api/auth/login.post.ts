@@ -27,24 +27,24 @@ export default defineEventHandler(async (event) => {
   if (!user) {
     throw createError({
       statusCode: 403,
-      statusMessage: "ログインに失敗しました。",
+      statusMessage: 'ログインに失敗しました。',
     });
   }
 
   // bcryptを使用してパスワードを検証
   const isPasswordValid = await bcrypt.compare(result.data.password, user.password);
-  
+
   if (!isPasswordValid) {
     throw createError({
       statusCode: 403,
-      statusMessage: "ログインに失敗しました。",
+      statusMessage: 'ログインに失敗しました。',
     });
   }
 
   // ログイン成功時にlast_loginを更新
   await prisma.user.update({
     where: { id: user.id },
-    data: { last_login: new Date() }
+    data: { last_login: new Date() },
   });
 
   const expiresIn = 60 * 60 * 24 * 14; // 14日

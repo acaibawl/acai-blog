@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 export default defineEventHandler(async (event) => {
   const id = Number(event.context.params?.id);
   // idが有効な数値（NaNや0の場合）でなければエラーを返す
@@ -8,21 +8,21 @@ export default defineEventHandler(async (event) => {
     event.node.res.statusCode = 400;
     throw createError({
       message: 'Invalid article ID',
-      statusCode: 400
+      statusCode: 400,
     });
   }
 
   try {
     const article = await prisma.article.findUnique({
-      where: { id }
+      where: { id },
     });
-  
+
     // articleが見つからない場合はエラーを返す
     if (!article) {
-      event.node.res.statusCode = 404
+      event.node.res.statusCode = 404;
       throw createError({
         message: 'Article not found',
-        statusCode: 404
+        statusCode: 404,
       });
     }
     return article;
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     console.error(error);
     throw createError({
       message: '記事の取得に失敗しました。',
-      statusCode: 500
+      statusCode: 500,
     });
   }
-})
+});

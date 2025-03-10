@@ -13,8 +13,8 @@ useHead({
     { hid: 'twitter:card', name: 'twitter:card', content: 'summary_large_image' },
     { hid: 'twitter:title', name: 'twitter:title', content: `記事一覧ページです` },
     { hid: 'twitter:description', name: 'twitter:description', content: '記事一覧ページです。' },
-    { hid: 'twitter:image', name: 'twitter:image', content:  ogImage}
-  ]
+    { hid: 'twitter:image', name: 'twitter:image', content: ogImage },
+  ],
 });
 definePageMeta({
   auth: false,

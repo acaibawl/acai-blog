@@ -4,8 +4,8 @@ import ImageUploadModal from '~/components/ImageUploadModal.vue';
 useHead({
   title: '記事投稿',
   meta: [
-    { name: 'robots', content: 'noindex, nofollow' }
-  ]
+    { name: 'robots', content: 'noindex, nofollow' },
+  ],
 });
 
 const title = ref<string>('');
@@ -51,19 +51,19 @@ const handleImageUploaded = (imageUrl: string): void => {
     // 本文に画像を挿入
     // Markdownの画像タグを作成
     const imageMarkdown = `![画像](${imageUrl})`;
-    
+
     // テキストエリアにフォーカスがある場合はカーソル位置に挿入
     if (bodyTextarea.value) {
       const textarea = bodyTextarea.value;
       const startPos = textarea.selectionStart || 0;
       const endPos = textarea.selectionEnd || 0;
-      
+
       // 現在のテキストを取得
       const currentText = body.value;
-      
+
       // カーソル位置に画像タグを挿入
       body.value = currentText.substring(0, startPos) + imageMarkdown + currentText.substring(endPos);
-      
+
       // カーソル位置を更新
       setTimeout(() => {
         textarea.focus();
@@ -75,7 +75,7 @@ const handleImageUploaded = (imageUrl: string): void => {
       body.value += (body.value ? '\n\n' : '') + imageMarkdown;
     }
   }
-  
+
   // モーダルを閉じる
   closeImageUploadModal();
 };
@@ -100,22 +100,22 @@ const handleSubmit = async (): Promise<void> => {
     // 記事を投稿するAPIを呼び出す
     const { data, error } = await useFetch('/api/articles/create', {
       method: 'POST',
-      body: { 
-        title: title.value, 
+      body: {
+        title: title.value,
         body: body.value,
         thumbnail_url: thumbnailUrl.value || null,
-        main_image_url: mainImageUrl.value || null
+        main_image_url: mainImageUrl.value || null,
       },
       headers: {
-        Authorization: `Bearer ${authToken.value}`
-      }
+        Authorization: `Bearer ${authToken.value}`,
+      },
     });
-    
+
     if (error.value) {
       errorMessage.value = error.value.statusMessage || 'ログイン情報が不正です。';
       throw new Error(errorMessage.value);
     }
-    
+
     if (data.value?.id) {
       router.push(`/articles/${data.value.id}`);
     } else {
@@ -128,37 +128,37 @@ const handleSubmit = async (): Promise<void> => {
     }
   }
 };
-</script> 
+</script>
 
 <template>
   <div class="create-article-container">
     <h1 class="page-title">記事投稿</h1>
-    <form @submit.prevent="handleSubmit" class="article-form">
+    <form class="article-form" @submit.prevent="handleSubmit">
       <div class="form-group">
         <label for="title" class="form-label">タイトル</label>
-        <input type="text" id="title" v-model="title" required class="form-input" placeholder="記事のタイトルを入力してください" />
+        <input id="title" v-model="title" type="text" required class="form-input" placeholder="記事のタイトルを入力してください" >
       </div>
-      
+
       <!-- 画像設定セクション -->
       <div class="form-group">
         <h3 class="section-title">画像設定</h3>
-        
+
         <!-- サムネイル画像設定 -->
         <div class="image-setting-row">
           <label class="form-label">サムネイル画像</label>
           <div class="thumbnail-container">
             <div v-if="thumbnailUrl" class="thumbnail-preview">
-              <img :src="thumbnailUrl" alt="サムネイル" class="thumbnail-image" />
+              <img :src="thumbnailUrl" alt="サムネイル" class="thumbnail-image" >
               <button type="button" class="thumbnail-clear-button" @click="clearThumbnail">
                 ✕
               </button>
             </div>
-            <button 
-              type="button" 
-              class="thumbnail-upload-button" 
+            <button
+              type="button"
+              class="thumbnail-upload-button"
               @click="openImageUploadModal('thumbnail')"
             >
-              <span class="button-icon">📷</span> 
+              <span class="button-icon">📷</span>
               {{ thumbnailUrl ? 'サムネイルを変更' : 'サムネイルを設定' }}
             </button>
             <div class="image-description">
@@ -166,23 +166,23 @@ const handleSubmit = async (): Promise<void> => {
             </div>
           </div>
         </div>
-        
+
         <!-- メイン画像設定 -->
         <div class="image-setting-row">
           <label class="form-label">メイン画像</label>
           <div class="thumbnail-container">
             <div v-if="mainImageUrl" class="thumbnail-preview main-image-preview">
-              <img :src="mainImageUrl" alt="メイン画像" class="thumbnail-image" />
+              <img :src="mainImageUrl" alt="メイン画像" class="thumbnail-image" >
               <button type="button" class="thumbnail-clear-button" @click="clearMainImage">
                 ✕
               </button>
             </div>
-            <button 
-              type="button" 
-              class="thumbnail-upload-button" 
+            <button
+              type="button"
+              class="thumbnail-upload-button"
               @click="openImageUploadModal('main')"
             >
-              <span class="button-icon">📷</span> 
+              <span class="button-icon">📷</span>
               {{ mainImageUrl ? 'メイン画像を変更' : 'メイン画像を設定' }}
             </button>
             <div class="image-description">
@@ -191,7 +191,7 @@ const handleSubmit = async (): Promise<void> => {
           </div>
         </div>
       </div>
-      
+
       <div class="form-group">
         <div class="form-header">
           <label for="body" class="form-label">内容</label>
@@ -204,19 +204,19 @@ const handleSubmit = async (): Promise<void> => {
             </button>
           </div>
         </div>
-        <textarea 
-          v-if="!showPreview" 
-          id="body" 
+        <textarea
+          v-if="!showPreview"
+          id="body"
           ref="bodyTextarea"
-          v-model="body" 
-          required 
-          class="form-textarea" 
-          placeholder="記事の内容を入力してください（Markdown形式で入力可能）" 
+          v-model="body"
+          required
+          class="form-textarea"
+          placeholder="記事の内容を入力してください（Markdown形式で入力可能）"
           rows="10"
-        ></textarea>
+        />
         <MarkdownPreview v-else :content="body" />
       </div>
-      <div class="preview-info" v-if="!showPreview">
+      <div v-if="!showPreview" class="preview-info">
         <p>Markdown形式で入力できます。プレビューボタンで表示を確認できます。</p>
         <p class="markdown-hint">画像を挿入するには「画像を追加」ボタンをクリックするか、<code>![代替テキスト](画像URL)</code>と入力します。</p>
       </div>
@@ -226,10 +226,10 @@ const handleSubmit = async (): Promise<void> => {
       </div>
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     </form>
-    
+
     <!-- 画像アップロードモーダル -->
-    <ImageUploadModal 
-      :is-open="showImageUploadModal" 
+    <ImageUploadModal
+      :is-open="showImageUploadModal"
       @close="closeImageUploadModal"
       @image-uploaded="handleImageUploaded"
     />

@@ -5,8 +5,8 @@ import { marked } from 'marked';
 const props = defineProps({
   content: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
 });
 
 const renderedMarkdown = computed(() => {
@@ -15,13 +15,14 @@ const renderedMarkdown = computed(() => {
 
 useHead({
   link: [
-    { rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/yakuhanjp@4.1.1/dist/css/yakuhanjp.css"}
+    { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/yakuhanjp@4.1.1/dist/css/yakuhanjp.css' },
   ],
 });
 </script>
 
 <template>
-  <div class="markdown-preview" v-html="renderedMarkdown"></div>
+  <!-- eslint-disable-next-line vue/no-v-html -->
+  <div class="markdown-preview" v-html="renderedMarkdown"/>
 </template>
 
 <style>

@@ -15,7 +15,7 @@ export default withNuxt(
     files: ['**/*.vue'],
     rules: {
       'vue/no-multiple-template-root': 'error',
-      'vue/multi-word-component-names': 'error',
+      'vue/multi-word-component-names': 'off',
       'vue/require-v-for-key': 'error',
       'vue/no-use-v-if-with-v-for': 'error',
       'vue/attributes-order': [

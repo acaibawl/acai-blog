@@ -20,23 +20,27 @@ const jwtPayload = computed<JwtPayload | null>(() => {
 </script>
 
 <template>
-  <header>
-    <div class="header-container">
-      <h1><NuxtLink to="/">浅井ブログ</NuxtLink></h1>
-      <div v-if="status === 'authenticated'" class="admin-controls">
-        <p class="admin-name">管理者：{{ jwtPayload?.name }}</p>
-        <button class="logout-button" @click="signOut({ callbackUrl: '/' })">Logout</button>
+  <div>
+    <header>
+      <div class="header-container">
+        <h1>
+          <NuxtLink to="/">浅井ブログ</NuxtLink>
+        </h1>
+        <div v-if="status === 'authenticated'" class="admin-controls">
+          <p class="admin-name">管理者：{{ jwtPayload?.name }}</p>
+          <button class="logout-button" @click="signOut({ callbackUrl: '/' })">Logout</button>
+        </div>
       </div>
-    </div>
-  </header>
-  <main>
-    <div class="container">
-      <slot />
-    </div>
-  </main>
-  <footer>
-    © Copyright 2025 浅井 All rights reserved.
-  </footer>
+    </header>
+    <main>
+      <div class="container">
+        <slot />
+      </div>
+    </main>
+    <footer>
+      © Copyright 2025 浅井 All rights reserved.
+    </footer>
+  </div>
 </template>
 
 <style>

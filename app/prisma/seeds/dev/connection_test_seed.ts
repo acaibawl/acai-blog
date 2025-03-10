@@ -14,6 +14,7 @@ async function main() {
     skipDuplicates: true,
   });
 
+  // eslint-disable-next-line no-console
   console.log(`登録した件数: ${result.count}`);
 }
 

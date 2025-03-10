@@ -93,4 +93,10 @@ useHead({
   border: none;                                /* 内側の余計な枠線は不要 */
   line-height: 1.45;                           /* 読みやすい行間 */
 }
+.markdown-preview iframe {
+  width: 100%;
+  max-width: 560px; /* 最大幅はYoutubeで貼り付けコピー取得時の幅 */
+  aspect-ratio: 16 / 9;
+  border: none;
+}
 </style>

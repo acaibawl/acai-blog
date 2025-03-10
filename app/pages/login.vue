@@ -4,14 +4,14 @@ definePageMeta({
     unauthenticatedOnly: true,
     navigateUnauthenticatedTo: '/login',
     navigateAuthenticatedTo: '/',
-  }
+  },
 });
 
 useHead({
   title: 'ログイン',
   meta: [
-    { name: 'robots', content: 'noindex, nofollow' }
-  ]
+    { name: 'robots', content: 'noindex, nofollow' },
+  ],
 });
 
 const { signIn, status } = useAuth();
@@ -21,7 +21,7 @@ const errorMessage = ref('');
 watch(status, (newStatus) => {
   if (newStatus === 'authenticated') {
     navigateTo('/');
-  } 
+  }
 });
 
 const username = ref('');
@@ -43,11 +43,11 @@ const handleLogin = async () => {
   <form @submit.prevent="handleLogin">
     <div>
       <label for="username">Username:</label>
-      <input type="text" v-model="username" id="username" placeholder="Username" />
+      <input id="username" v-model="username" type="text" placeholder="Username" >
     </div>
     <div>
       <label for="password">Password:</label>
-      <input type="password" v-model="password" id="password" placeholder="Password" />
+      <input id="password" v-model="password" type="password" placeholder="Password" >
     </div>
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}

@@ -38,13 +38,13 @@ export interface PaginatedResponse {
  */
 export const getMinioConfig = (): MinioConfig => {
   const config = useRuntimeConfig();
-  
+
   return {
     endpoint: config.minioEndpoint || '',
     accessKey: config.minioAccessKey || '',
     secretKey: config.minioSecretKey || '',
     bucket: config.minioBucket || '',
-    imageUrlBase: config.minioImageUrlBase || config.minioEndpoint || ''
+    imageUrlBase: config.minioImageUrlBase || config.minioEndpoint || '',
   };
 };
 
@@ -58,14 +58,14 @@ export const validateMinioConfig = (config: MinioConfig): void => {
       statusMessage: 'MinIOエンドポイントが設定されていません',
     });
   }
-  
+
   if (!config.accessKey || !config.secretKey) {
     throw createError({
       statusCode: 500,
       statusMessage: 'MinIOアクセスキーまたはシークレットキーが設定されていません',
     });
   }
-  
+
   if (!config.bucket) {
     throw createError({
       statusCode: 500,
@@ -79,15 +79,15 @@ export const validateMinioConfig = (config: MinioConfig): void => {
  */
 export const createS3Client = (config?: MinioConfig): S3Client => {
   const minioConfig = config || getMinioConfig();
-  
+
   return new S3Client({
     endpoint: minioConfig.endpoint,
     region: 'ap-northeast-1',
     credentials: {
       accessKeyId: minioConfig.accessKey,
-      secretAccessKey: minioConfig.secretKey
+      secretAccessKey: minioConfig.secretKey,
     },
-    forcePathStyle: true // MinIOではパススタイルのURLを使用
+    forcePathStyle: true, // MinIOではパススタイルのURLを使用
   });
 };
 
@@ -96,7 +96,7 @@ export const createS3Client = (config?: MinioConfig): S3Client => {
  */
 export const filterImageFiles = (contents: any[]): any[] => {
   const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-  return contents.filter(obj => {
+  return contents.filter((obj) => {
     const key = obj.Key || '';
     return imageExtensions.some(ext => key.toLowerCase().endsWith(ext));
   });
@@ -110,11 +110,11 @@ export const generateImageUrl = (key: string, config: MinioConfig): string => {
   const baseUrl = config.imageUrlBase.endsWith('/')
     ? config.imageUrlBase
     : `${config.imageUrlBase}/`;
-  
+
   // キーの先頭のスラッシュを処理
   const processedKey = key.startsWith('/') ? key.substring(1) : key;
   // 本番環境では、baseUrlにバケット名が含まれているので、そのまま返す（minIOとS3の違い）
-  return process.env.NODE_ENV === 'production' ?  `${baseUrl}${processedKey}` : `${baseUrl}${config.bucket}/${processedKey}`;
+  return process.env.NODE_ENV === 'production' ? `${baseUrl}${processedKey}` : `${baseUrl}${config.bucket}/${processedKey}`;
 };
 
 /**
@@ -124,12 +124,12 @@ export const generateImageUrl = (key: string, config: MinioConfig): string => {
 export const initializeS3Client = (): { s3Client: any; minioConfig: MinioConfig } => {
   // MinIO設定を取得
   const minioConfig = getMinioConfig();
-  
+
   // 設定を検証
   validateMinioConfig(minioConfig);
-  
+
   // S3クライアントを作成
   const s3Client = createS3Client(minioConfig);
-  
+
   return { s3Client, minioConfig };
-}; 
+};

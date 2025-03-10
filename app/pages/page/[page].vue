@@ -16,9 +16,9 @@ useHead({
     { hid: 'twitter:card', name: 'twitter:card', content: 'summary_large_image' },
     { hid: 'twitter:title', name: 'twitter:title', content: `記事一覧 - ${pageNumber}ページ` },
     { hid: 'twitter:description', name: 'twitter:description', content: '記事一覧ページです。' },
-    { hid: 'twitter:image', name: 'twitter:image', content: 'https://acai-blog.com/no-image.png' }
-  ]
-})
+    { hid: 'twitter:image', name: 'twitter:image', content: 'https://acai-blog.com/no-image.png' },
+  ],
+});
 definePageMeta({
   auth: false,
 });

@@ -18,9 +18,9 @@ useHead({
     { hid: 'twitter:card', name: 'twitter:card', content: 'summary_large_image' },
     { hid: 'twitter:title', name: 'twitter:title', content: `記事一覧ページです` },
     { hid: 'twitter:description', name: 'twitter:description', content: '記事一覧ページです。' },
-    { hid: 'twitter:image', name: 'twitter:image', content:  ogImage}
-  ]
-})
+    { hid: 'twitter:image', name: 'twitter:image', content: ogImage },
+  ],
+});
 
 // useFetch を使って /api/articles?page=1 から記事データを取得
 const { data, error } = await useFetch<ArticlesResponse>(`/api/articles?page=${props.page}`);
@@ -47,7 +47,7 @@ const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png
       </a>
     </template>
   </div>
-  <ArticleListPagination :page="props.page" :allArticlesCount="data!.allArticlesCount" />
+  <ArticleListPagination :page="props.page" :all-articles-count="data!.allArticlesCount" />
 </template>
 
 <style scoped>

@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
 
     // リクエストボディの取得と検証
     const validationResult = articleSchema.safeParse(await readBody(event));
-    
+
     if (!validationResult.success) {
       // バリデーションエラーの場合
       const errorMessages = validationResult.error.errors.map(err => err.message).join(', ');
@@ -27,12 +27,12 @@ export default defineEventHandler(async (event) => {
         statusMessage: errorMessages,
       });
     }
-    
+
     const { title, body: content, thumbnail_url, main_image_url } = validationResult.data;
-    
+
     // 記事の登録
     const prisma = new PrismaClient();
-    
+
     // データオブジェクトを作成
     const articleData = {
       title,
@@ -40,28 +40,28 @@ export default defineEventHandler(async (event) => {
       thumbnail_url: thumbnail_url || null,
       main_image_url: main_image_url || null,
     };
-    
+
     const article = await prisma.article.create({
       data: articleData,
     });
-    
+
     await prisma.$disconnect();
-    
+
     return {
       id: article.id,
-      message: "記事が投稿されました",
+      message: '記事が投稿されました',
     };
   } catch (error: any) {
-    console.error("記事の投稿に失敗しました:", error);
-    
+    console.error('記事の投稿に失敗しました:', error);
+
     // 認証エラーはverifyAuth内で処理されるため、それ以外のエラーを処理
     if (!error.statusCode) {
       throw createError({
         statusCode: 500,
-        statusMessage: "サーバーエラーが発生しました",
+        statusMessage: 'サーバーエラーが発生しました',
       });
     }
-    
+
     // 既に適切なエラーが生成されている場合はそのまま再スロー
     throw error;
   }

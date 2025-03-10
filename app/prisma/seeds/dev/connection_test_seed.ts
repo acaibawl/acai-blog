@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
   // createMany を使って複数のユーザーを一括登録
@@ -12,16 +12,16 @@ async function main() {
     ],
     // 既に同じ email のデータがあった場合はエラーにならないようにスキップする
     skipDuplicates: true,
-  })
+  });
 
-  console.log(`登録した件数: ${result.count}`)
+  console.log(`登録した件数: ${result.count}`);
 }
 
 main()
   .catch((error) => {
-    console.error(error)
-    process.exit(1)
+    console.error(error);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

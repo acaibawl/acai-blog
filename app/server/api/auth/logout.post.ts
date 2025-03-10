@@ -1,1 +1,1 @@
-export default defineEventHandler(() => ({ message: "logout successfully" }));
+export default defineEventHandler(() => ({ message: 'logout successfully' }));

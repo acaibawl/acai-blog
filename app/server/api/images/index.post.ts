@@ -3,9 +3,9 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { verifyAuth } from '~/server/utils/auth';
-import { 
+import {
   generateImageUrl,
-  initializeS3Client
+  initializeS3Client,
 } from '~/server/utils/s3';
 
 // レスポンスの型定義
@@ -26,17 +26,17 @@ const generateFileName = (originalName: string = 'unknown.jpg'): string => {
 
 // S3へのアップロード
 const uploadToS3 = async (
-  s3Client: any, 
-  bucketName: string, 
-  fileName: string, 
-  fileContent: Buffer, 
-  contentType: string
+  s3Client: any,
+  bucketName: string,
+  fileName: string,
+  fileContent: Buffer,
+  contentType: string,
 ): Promise<void> => {
   const putCommand = new PutObjectCommand({
     Bucket: bucketName,
     Key: fileName,
     Body: fileContent,
-    ContentType: contentType || 'application/octet-stream'
+    ContentType: contentType || 'application/octet-stream',
   });
 
   await s3Client.send(putCommand);
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event): Promise<UploadResponse> => {
   try {
     // 認証チェック
     await verifyAuth(event);
-    
+
     // S3クライアントと設定を初期化
     const { s3Client, minioConfig } = initializeS3Client();
 
@@ -56,16 +56,16 @@ export default defineEventHandler(async (event): Promise<UploadResponse> => {
     if (!formData || formData.length === 0) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ファイルが見つかりません。'
+        statusMessage: 'ファイルが見つかりません。',
       });
     }
-    
+
     // フォームデータから画像ファイルを取得
     const imageFile = formData.find(part => part.name === 'image');
     if (!imageFile || !imageFile.data) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ファイルが見つかりません。'
+        statusMessage: 'ファイルが見つかりません。',
       });
     }
 
@@ -74,7 +74,7 @@ export default defineEventHandler(async (event): Promise<UploadResponse> => {
     if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
       throw createError({
         statusCode: 400,
-        statusMessage: '許可されていないファイル形式です。JPEG、PNG、GIF、WEBPのみ許可されています。'
+        statusMessage: '許可されていないファイル形式です。JPEG、PNG、GIF、WEBPのみ許可されています。',
       });
     }
 
@@ -90,20 +90,20 @@ export default defineEventHandler(async (event): Promise<UploadResponse> => {
     return {
       success: true,
       url: imageUrl,
-      fileName: fileName
+      fileName: fileName,
     };
   } catch (error: any) {
     console.error('画像アップロードエラー:', error);
-    
+
     // 認証エラーはverifyAuth内で処理されるため、それ以外のエラーを処理
     if (!error.statusCode) {
       throw createError({
         statusCode: 500,
-        statusMessage: '画像のアップロード中にエラーが発生しました。'
+        statusMessage: '画像のアップロード中にエラーが発生しました。',
       });
     }
-    
+
     // 既に適切なエラーが生成されている場合はそのまま再スロー
     throw error;
   }
-}); 
+});

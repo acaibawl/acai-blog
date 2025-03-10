@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
       new DeleteObjectCommand({
         Bucket: minioConfig.bucket,
         Key: decodedKey,
-      })
+      }),
     );
 
     return {
@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
     };
   } catch (error: any) {
     console.error('画像削除エラー:', error);
-    
+
     if (error.statusCode) {
       throw error;
     }
@@ -45,4 +45,4 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'サーバーエラーが発生しました',
     });
   }
-}); 
+});

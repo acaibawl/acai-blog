@@ -4,13 +4,13 @@ import dayjs from 'dayjs';
 import type { Article } from '@prisma/client';
 
 // ルートパラメータから記事IDを取得
-const route = useRoute()
+const route = useRoute();
 
 // APIから記事詳細データを取得する
 const { data, error } = await useFetch<Article>(`/api/articles/${route.params.id}`);
 if (error.value) {
-    console.error(error.value);
-    throw createError(error.value?.data);
+  console.error(error.value);
+  throw createError(error.value?.data);
 }
 
 const runtimeConfig = useRuntimeConfig();
@@ -27,9 +27,9 @@ useHead({
     { hid: 'twitter:card', name: 'twitter:card', content: 'summary_large_image' },
     { hid: 'twitter:title', name: 'twitter:title', content: data.value?.title },
     { hid: 'twitter:description', name: 'twitter:description', content: description },
-    { hid: 'twitter:image', name: 'twitter:image', content:  ogImage}
+    { hid: 'twitter:image', name: 'twitter:image', content: ogImage },
   ],
-})
+});
 definePageMeta({
   auth: false,
 });

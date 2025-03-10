@@ -44,14 +44,14 @@ export const parseFile = async (req: any): Promise<{ fields: any; files: any }> 
 export const validateFileType = (file: UploadedFile): string => {
   const mimeType = file.mimetype || file.type || '';
   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  
+
   if (!allowedTypes.includes(mimeType)) {
     throw createError({
       statusCode: 400,
-      statusMessage: '許可されていないファイル形式です。JPEG、PNG、GIF、WEBPのみ許可されています。'
+      statusMessage: '許可されていないファイル形式です。JPEG、PNG、GIF、WEBPのみ許可されています。',
     });
   }
-  
+
   return mimeType;
 };
 
@@ -72,8 +72,8 @@ export const getFilePath = (file: UploadedFile): string => {
   if (!filePath) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'ファイルパスが見つかりません。'
+      statusMessage: 'ファイルパスが見つかりません。',
     });
   }
   return filePath;
-}; 
+};

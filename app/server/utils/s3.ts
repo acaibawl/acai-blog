@@ -1,3 +1,4 @@
+import type { _Object } from '@aws-sdk/client-s3';
 import { S3Client } from '@aws-sdk/client-s3';
 import { createError } from 'h3';
 
@@ -94,7 +95,7 @@ export const createS3Client = (config?: MinioConfig): S3Client => {
 /**
  * 画像ファイルをフィルタリング
  */
-export const filterImageFiles = (contents: any[]): any[] => {
+export const filterImageFiles = (contents: _Object[]): _Object[] => {
   const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
   return contents.filter((obj) => {
     const key = obj.Key || '';
@@ -121,7 +122,7 @@ export const generateImageUrl = (key: string, config: MinioConfig): string => {
  * MinIO設定を取得し、検証して、S3クライアントを初期化する共通関数
  * @returns S3クライアントとMinIO設定
  */
-export const initializeS3Client = (): { s3Client: any; minioConfig: MinioConfig } => {
+export const initializeS3Client = (): { s3Client: S3Client; minioConfig: MinioConfig } => {
   // MinIO設定を取得
   const minioConfig = getMinioConfig();
 

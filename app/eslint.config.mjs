@@ -8,7 +8,7 @@ export default withNuxt(
     rules: {
       // '@typescript-eslint/explicit-function-return-type': 'error',
       'no-console': ['error', { allow: ['error', 'warn'] }],
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   {

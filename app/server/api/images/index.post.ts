@@ -1,4 +1,5 @@
 import { defineEventHandler, createError, readMultipartFormData } from 'h3';
+import type { S3Client } from '@aws-sdk/client-s3';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import path from 'path';
 import { randomUUID } from 'crypto';
@@ -26,7 +27,7 @@ const generateFileName = (originalName: string = 'unknown.jpg'): string => {
 
 // S3へのアップロード
 const uploadToS3 = async (
-  s3Client: any,
+  s3Client: S3Client,
   bucketName: string,
   fileName: string,
   fileContent: Buffer,

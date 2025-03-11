@@ -58,6 +58,17 @@ marked.setOptions({ breaks: true });
         </svg>
         <span>でシェア</span>
       </a>
+      <a
+        :href="`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(`${runtimeConfig.public.baseUrl}/articles/${route.params.id}`)}`"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+        class="line-share-button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.365 9.89c.50 0 .907.41.907.91s-.407.91-.907.91H17.59v1.306h1.775c.5 0 .907.41.907.91s-.407.91-.907.91H16.59c-.5 0-.908-.41-.908-.91V9.89c0-.5.407-.91.908-.91h2.775zm-5.443 0c.5 0 .908.41.908.91v4.046c0 .5-.41.91-.908.91s-.908-.41-.908-.91V10.8c0-.5.407-.91.908-.91zm-3.775 0c.5 0 .907.41.907.91v4.046c0 .5-.407.91-.907.91s-.907-.41-.907-.91V10.8c0-.5.407-.91.907-.91zm-2.75.82h-1.8v1.157h1.8c.5 0 .908.41.908.91s-.407.91-.908.91h-1.8v1.157h1.8c.5 0 .908.41.908.91s-.407.91-.908.91H5.59c-.5 0-.908-.41-.908-.91V9.89c0-.5.407-.91.908-.91h2.807c.5 0 .907.41.907.91s-.407.91-.907.91zM24 10.8c0-4.61-4.62-8.366-10.3-8.366S3.4 6.19 3.4 10.8c0 4.143 3.674 7.614 8.65 8.274.337.072.796.222.912.51.104.26.068.668.033.929l-.148.89c-.044.264-.21 1.032.896.562.55-.232 8.017-4.72 10.941-8.087.803-.818 1.316-1.65 1.316-3.078z"/>
+        </svg>
+        <span>LINEでシェア</span>
+      </a>
     </div>
   </article>
 </template>
@@ -94,14 +105,14 @@ article .mainImage {
     margin-top: 30px;
     display: flex;
     justify-content: flex-start;
+    gap: 10px;
 }
 
-.twitter-share-button {
+.twitter-share-button,
+.line-share-button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background-color: #000;
-    color: #fff;
     padding: 8px 16px;
     border-radius: 20px;
     text-decoration: none;
@@ -109,11 +120,26 @@ article .mainImage {
     transition: background-color 0.3s;
 }
 
+.twitter-share-button {
+    background-color: #000;
+    color: #fff;
+}
+
 .twitter-share-button:hover {
     background-color: #333;
 }
 
-.twitter-share-button svg {
+.line-share-button {
+    background-color: #06C755;
+    color: #fff;
+}
+
+.line-share-button:hover {
+    background-color: #05a648;
+}
+
+.twitter-share-button svg,
+.line-share-button svg {
     width: 18px;
     height: 18px;
 }

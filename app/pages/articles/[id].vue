@@ -53,7 +53,7 @@ marked.setOptions({ breaks: true });
         rel="nofollow noopener noreferrer"
         class="twitter-share-button"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" alt="Xでシェア">
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
         </svg>
         <span>でシェア</span>
@@ -64,7 +64,7 @@ marked.setOptions({ breaks: true });
         rel="nofollow noopener noreferrer"
         class="line-share-button"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" alt="LINEでシェア">
           <path d="M19.365 9.89c.50 0 .907.41.907.91s-.407.91-.907.91H17.59v1.306h1.775c.5 0 .907.41.907.91s-.407.91-.907.91H16.59c-.5 0-.908-.41-.908-.91V9.89c0-.5.407-.91.908-.91h2.775zm-5.443 0c.5 0 .908.41.908.91v4.046c0 .5-.41.91-.908.91s-.908-.41-.908-.91V10.8c0-.5.407-.91.908-.91zm-3.775 0c.5 0 .907.41.907.91v4.046c0 .5-.407.91-.907.91s-.907-.41-.907-.91V10.8c0-.5.407-.91.907-.91zm-2.75.82h-1.8v1.157h1.8c.5 0 .908.41.908.91s-.407.91-.908.91h-1.8v1.157h1.8c.5 0 .908.41.908.91s-.407.91-.908.91H5.59c-.5 0-.908-.41-.908-.91V9.89c0-.5.407-.91.908-.91h2.807c.5 0 .907.41.907.91s-.407.91-.907.91zM24 10.8c0-4.61-4.62-8.366-10.3-8.366S3.4 6.19 3.4 10.8c0 4.143 3.674 7.614 8.65 8.274.337.072.796.222.912.51.104.26.068.668.033.929l-.148.89c-.044.264-.21 1.032.896.562.55-.232 8.017-4.72 10.941-8.087.803-.818 1.316-1.65 1.316-3.078z"/>
         </svg>
         <span>LINEでシェア</span>

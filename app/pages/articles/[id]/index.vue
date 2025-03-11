@@ -10,7 +10,7 @@ const route = useRoute();
 const router = useRouter();
 
 // 認証状態を取得
-const { status } = useAuthCheck();
+const { status, authToken } = useAuthCheck();
 
 // APIから記事詳細データを取得する
 const { data, error } = await useFetch<Article>(`/api/articles/${route.params.id}`);
@@ -50,14 +50,65 @@ marked.setOptions({ breaks: true });
 const goToEditPage = () => {
   router.push(`/articles/${route.params.id}/edit`);
 };
+
+// 削除モーダル関連
+const showDeleteModal = ref(false);
+const deleteConfirmText = ref('');
+const deleteError = ref('');
+const isDeleting = ref(false);
+
+// 削除モーダルを表示
+const openDeleteModal = () => {
+  showDeleteModal.value = true;
+  deleteConfirmText.value = '';
+  deleteError.value = '';
+};
+
+// 削除モーダルを閉じる
+const closeDeleteModal = () => {
+  showDeleteModal.value = false;
+};
+
+// 記事を削除
+const deleteArticle = async () => {
+  if (deleteConfirmText.value !== 'delete') {
+    deleteError.value = '確認のため "delete" と入力してください';
+    return;
+  }
+
+  try {
+    isDeleting.value = true;
+    deleteError.value = '';
+
+    await $fetch(`/api/articles/${route.params.id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${authToken.value}`,
+      },
+    });
+
+    // 削除成功後、記事一覧ページにリダイレクト
+    router.push('/');
+  } catch (error: any) {
+    console.error('記事削除エラー:', error);
+    deleteError.value = error.message || '記事の削除に失敗しました';
+  } finally {
+    isDeleting.value = false;
+  }
+};
 </script>
 <template>
   <article>
     <div class="article-header">
       <h2>{{ data!.title }}</h2>
-      <button v-if="status === 'authenticated'" class="edit-button" @click="goToEditPage">
-        <span class="edit-icon">✏️</span> 編集
-      </button>
+      <div v-if="status === 'authenticated'" class="article-actions">
+        <button class="edit-button" @click="goToEditPage">
+          <span class="edit-icon">✏️</span> 編集
+        </button>
+        <button class="delete-button" @click="openDeleteModal">
+          <span class="delete-icon">🗑️</span> 削除
+        </button>
+      </div>
     </div>
     <!-- <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }} | カテゴリ: {{ category }}</p> -->
     <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }}</p>
@@ -88,6 +139,41 @@ const goToEditPage = () => {
         <span>LINEでシェア</span>
       </a>
     </div>
+
+    <!-- 削除確認モーダル -->
+    <div v-if="showDeleteModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>記事の削除</h3>
+        <p>この記事を削除しますか？この操作は取り消せません。</p>
+        <p>削除を確認するには、テキストボックスに「delete」と入力してください。</p>
+        <div class="form-group">
+          <input
+            v-model="deleteConfirmText"
+            type="text"
+            placeholder="delete と入力"
+            class="delete-confirm-input"
+            :disabled="isDeleting"
+          >
+        </div>
+        <p v-if="deleteError" class="error-message">{{ deleteError }}</p>
+        <div class="modal-actions">
+          <button
+            :disabled="isDeleting"
+            class="cancel-button"
+            @click="closeDeleteModal"
+          >
+            キャンセル
+          </button>
+          <button
+            :disabled="deleteConfirmText !== 'delete' || isDeleting"
+            class="confirm-delete-button"
+            @click="deleteArticle"
+          >
+            {{ isDeleting ? '削除中...' : '削除する' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </article>
 </template>
 
@@ -113,25 +199,41 @@ article {
     flex: 1;
 }
 
-.edit-button {
+.article-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-button, .delete-button {
     display: flex;
     align-items: center;
-    background-color: #f0f0f0;
-    color: #333;
     border: none;
     border-radius: 4px;
     padding: 6px 12px;
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s;
-    margin-left: 15px;
+}
+
+.edit-button {
+    background-color: #f0f0f0;
+    color: #333;
 }
 
 .edit-button:hover {
     background-color: #e0e0e0;
 }
 
-.edit-icon {
+.delete-button {
+    background-color: #ffebee;
+    color: #e53935;
+}
+
+.delete-button:hover {
+    background-color: #ffcdd2;
+}
+
+.edit-icon, .delete-icon {
     margin-right: 5px;
 }
 
@@ -194,5 +296,90 @@ article .mainImage {
 .line-share-button svg {
     width: 18px;
     height: 18px;
+}
+
+/* モーダル関連のスタイル */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #e53935;
+}
+
+.form-group {
+    margin: 20px 0;
+}
+
+.delete-confirm-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.cancel-button, .confirm-delete-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.cancel-button {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.cancel-button:hover {
+    background-color: #e0e0e0;
+}
+
+.confirm-delete-button {
+    background-color: #e53935;
+    color: white;
+}
+
+.confirm-delete-button:hover:not(:disabled) {
+    background-color: #c62828;
+}
+
+.confirm-delete-button:disabled {
+    background-color: #ffcdd2;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #e53935;
+    font-size: 14px;
+    margin: 10px 0;
 }
 </style>

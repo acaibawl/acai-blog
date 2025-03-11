@@ -38,7 +38,6 @@ const origin = useRequestURL().origin;
 const mainImageUrl = data.value?.main_image_url || `${origin}/no-image.png`;
 marked.setOptions({ breaks: true });
 </script>
-
 <template>
   <article>
     <h2>{{ data!.title }}</h2>
@@ -46,7 +45,21 @@ marked.setOptions({ breaks: true });
     <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }}</p>
     <img class="mainImage" :src="mainImageUrl" alt="記事のメイン画像">
     <MarkdownPreview :content="data!.body" />
-    </article>
+
+    <div class="share-buttons">
+      <a
+        :href="`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${data!.title}｜浅井ブログ`)}&url=${encodeURIComponent(`${runtimeConfig.public.baseUrl}/articles/${route.params.id}`)}`"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+        class="twitter-share-button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+        <span>でシェア</span>
+      </a>
+    </div>
+  </article>
 </template>
 
 <style>
@@ -77,4 +90,31 @@ article .mainImage {
     margin: 10px 0;
 }
 
+.share-buttons {
+    margin-top: 30px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.twitter-share-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #000;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.twitter-share-button:hover {
+    background-color: #333;
+}
+
+.twitter-share-button svg {
+    width: 18px;
+    height: 18px;
+}
 </style>

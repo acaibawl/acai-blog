@@ -53,14 +53,12 @@ const goToEditPage = () => {
 
 // 削除モーダル関連
 const showDeleteModal = ref(false);
-const deleteConfirmText = ref('');
 const deleteError = ref('');
 const isDeleting = ref(false);
 
 // 削除モーダルを表示
 const openDeleteModal = () => {
   showDeleteModal.value = true;
-  deleteConfirmText.value = '';
   deleteError.value = '';
 };
 
@@ -71,11 +69,6 @@ const closeDeleteModal = () => {
 
 // 記事を削除
 const deleteArticle = async () => {
-  if (deleteConfirmText.value !== 'delete') {
-    deleteError.value = '確認のため "delete" と入力してください';
-    return;
-  }
-
   try {
     isDeleting.value = true;
     deleteError.value = '';
@@ -97,6 +90,7 @@ const deleteArticle = async () => {
   }
 };
 </script>
+
 <template>
   <article>
     <div class="article-header">
@@ -141,39 +135,13 @@ const deleteArticle = async () => {
     </div>
 
     <!-- 削除確認モーダル -->
-    <div v-if="showDeleteModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3>記事の削除</h3>
-        <p>この記事を削除しますか？この操作は取り消せません。</p>
-        <p>削除を確認するには、テキストボックスに「delete」と入力してください。</p>
-        <div class="form-group">
-          <input
-            v-model="deleteConfirmText"
-            type="text"
-            placeholder="delete と入力"
-            class="delete-confirm-input"
-            :disabled="isDeleting"
-          >
-        </div>
-        <p v-if="deleteError" class="error-message">{{ deleteError }}</p>
-        <div class="modal-actions">
-          <button
-            :disabled="isDeleting"
-            class="cancel-button"
-            @click="closeDeleteModal"
-          >
-            キャンセル
-          </button>
-          <button
-            :disabled="deleteConfirmText !== 'delete' || isDeleting"
-            class="confirm-delete-button"
-            @click="deleteArticle"
-          >
-            {{ isDeleting ? '削除中...' : '削除する' }}
-          </button>
-        </div>
-      </div>
-    </div>
+    <DeleteArticleModal
+      :show="showDeleteModal"
+      :is-deleting="isDeleting"
+      :error="deleteError"
+      @close="closeDeleteModal"
+      @delete="deleteArticle"
+    />
   </article>
 </template>
 

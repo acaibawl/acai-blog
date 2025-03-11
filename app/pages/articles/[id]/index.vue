@@ -3,8 +3,14 @@ import { marked } from 'marked';
 import dayjs from 'dayjs';
 import type { Article } from '@prisma/client';
 
+console.error('articles/[id].vue loaded');
+
 // ルートパラメータから記事IDを取得
 const route = useRoute();
+const router = useRouter();
+
+// 認証状態を取得
+const { status } = useAuthCheck();
 
 // APIから記事詳細データを取得する
 const { data, error } = await useFetch<Article>(`/api/articles/${route.params.id}`);
@@ -31,16 +37,28 @@ useHead({
   ],
 });
 definePageMeta({
+  name: 'articles-id',
+  path: '/articles/:id',
   auth: false,
 });
 
 const origin = useRequestURL().origin;
 const mainImageUrl = data.value?.main_image_url || `${origin}/no-image.png`;
 marked.setOptions({ breaks: true });
+
+// 記事編集ページへ移動
+const goToEditPage = () => {
+  router.push(`/articles/${route.params.id}/edit`);
+};
 </script>
 <template>
   <article>
-    <h2>{{ data!.title }}</h2>
+    <div class="article-header">
+      <h2>{{ data!.title }}</h2>
+      <button v-if="status === 'authenticated'" class="edit-button" @click="goToEditPage">
+        <span class="edit-icon">✏️</span> 編集
+      </button>
+    </div>
     <!-- <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }} | カテゴリ: {{ category }}</p> -->
     <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }}</p>
     <img class="mainImage" :src="mainImageUrl" alt="記事のメイン画像">
@@ -81,6 +99,40 @@ article {
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.article-header h2 {
+    margin: 0;
+    flex: 1;
+}
+
+.edit-button {
+    display: flex;
+    align-items: center;
+    background-color: #f0f0f0;
+    color: #333;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-left: 15px;
+}
+
+.edit-button:hover {
+    background-color: #e0e0e0;
+}
+
+.edit-icon {
+    margin-right: 5px;
 }
 
 /* 記事の見出し */

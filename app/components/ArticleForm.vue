@@ -486,4 +486,4 @@ watch(() => props.initialMainImageUrl, (newValue) => {
   font-size: 12px;
   margin-top: 5px;
 }
-</style> 
+</style>

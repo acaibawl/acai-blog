@@ -56,6 +56,9 @@ const showDeleteModal = ref(false);
 const deleteError = ref('');
 const isDeleting = ref(false);
 
+// メッセージ状態
+const message = useMessage();
+
 // 削除モーダルを表示
 const openDeleteModal = () => {
   showDeleteModal.value = true;
@@ -79,6 +82,9 @@ const deleteArticle = async () => {
         Authorization: `Bearer ${authToken.value}`,
       },
     });
+
+    // 削除成功メッセージを設定
+    message.value = `記事「${data.value?.title}」を削除しました`;
 
     // 削除成功後、記事一覧ページにリダイレクト
     router.push('/');

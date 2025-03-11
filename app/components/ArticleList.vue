@@ -39,7 +39,9 @@ const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png
       <template v-for="article in data?.articles" :key="article.id">
         <a :href="`/articles/${article.id}`">
           <div class="card">
-            <img :src="thumbnailUrl(article.thumbnail_url)" :alt="article.title">
+            <div class="image-container">
+              <img :src="thumbnailUrl(article.thumbnail_url)" :alt="article.title">
+            </div>
             <div class="card-content">
               <div class="card-title">{{ article.title }}</div>
             </div>
@@ -74,6 +76,8 @@ h1 {
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   padding: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
 .card:hover {
@@ -81,11 +85,25 @@ h1 {
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
 }
 
+/* カードの画像コンテナ */
+.card .image-container {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
 /* カードの画像 */
 .card img {
   width: 100%;
-  height: 180px;
+  height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.card:hover img {
+  transform: scale(1.05);
 }
 
 /* カードの中身 */

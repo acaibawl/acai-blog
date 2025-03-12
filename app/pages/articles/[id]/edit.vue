@@ -8,6 +8,7 @@ const router = useRouter();
 const errorMessage = ref<string>('');
 const isLoading = ref<boolean>(true);
 const article = ref<Article | null>(null);
+const notificationMessage = useNotificationMessage();
 
 // 認証関連
 const { authToken, checkAuth } = useAuthCheck(errorMessage);
@@ -69,6 +70,8 @@ const handleSubmit = async (formData: any): Promise<void> => {
     });
 
     if (response) {
+      // 成功メッセージを設定
+      notificationMessage.value = '記事を更新しました。';
       router.push(`/articles/${route.params.id}`);
     } else {
       errorMessage.value = '記事の更新に失敗しました。';

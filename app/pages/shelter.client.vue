@@ -1,6 +1,21 @@
 <script setup lang="ts">
 import { useWebSocket } from '@vueuse/core';
 
+const runtimeConfig = useRuntimeConfig();
+const ogImage = `${runtimeConfig.public.baseUrl}/twitter-shelter.webp`;
+useHead({
+  meta: [
+    { hid: 'description', name: 'description', content: 'Twitter避難所です。' },
+    { hid: 'og:title', property: 'og:title', content: 'Twitter避難所' },
+    { hid: 'og:description', property: 'og:description', content: 'Twitter避難所です。' },
+    { hid: 'og:url', property: 'og:url', content: runtimeConfig.public.baseUrl },
+    { hid: 'og:image', property: 'og:image', content: ogImage },
+    { hid: 'twitter:card', name: 'twitter:card', content: 'summary_large_image' },
+    { hid: 'twitter:title', name: 'twitter:title', content: `Twitter避難所` },
+    { hid: 'twitter:description', name: 'twitter:description', content: 'Twitter避難所です。' },
+    { hid: 'twitter:image', name: 'twitter:image', content: ogImage },
+  ],
+});
 definePageMeta({
   auth: false,
 });

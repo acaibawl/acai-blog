@@ -15,8 +15,10 @@ export default defineWebSocketHandler({
     });
   },
   close(peer: Peer) {
-    connections[peer.id].close();
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete connections[peer.id];
+    if (connections[peer.id]) {
+      connections[peer.id].close();
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete connections[peer.id];
+    }
   },
 });

@@ -57,7 +57,7 @@ const deleteError = ref('');
 const isDeleting = ref(false);
 
 // メッセージ状態
-const message = useMessage();
+const notificationMessage = useNotificationMessage();
 
 // 削除モーダルを表示
 const openDeleteModal = () => {
@@ -84,7 +84,7 @@ const deleteArticle = async () => {
     });
 
     // 削除成功メッセージを設定
-    message.value = `記事「${data.value?.title}」を削除しました`;
+    notificationMessage.value = `記事「${data.value?.title}」を削除しました`;
 
     // 削除成功後、記事一覧ページにリダイレクト
     router.push('/');

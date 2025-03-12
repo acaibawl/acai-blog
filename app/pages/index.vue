@@ -21,15 +21,16 @@ definePageMeta({
 });
 
 // メッセージ状態を取得
-const message = useMessage();
+const notificationMessage = useNotificationMessage();
 
 // ページがロードされたらメッセージを表示して消去
+// TODO: JSDOM操作をVueの仕組みに組み込んでいない
 onMounted(() => {
-  if (message.value) {
+  if (notificationMessage.value) {
     // メッセージを表示（3秒後に消える）
     const messageElement = document.createElement('div');
     messageElement.className = 'message-notification';
-    messageElement.textContent = message.value;
+    messageElement.textContent = notificationMessage.value;
     document.body.appendChild(messageElement);
 
     setTimeout(() => {
@@ -37,7 +38,7 @@ onMounted(() => {
       setTimeout(() => {
         document.body.removeChild(messageElement);
         // メッセージをクリア
-        message.value = '';
+        notificationMessage.value = '';
       }, 300);
     }, 3000);
   }

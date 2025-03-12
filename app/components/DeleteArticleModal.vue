@@ -12,7 +12,7 @@ const emit = defineEmits<{
 
 const deleteConfirmText = ref('');
 
-// 入力値をリセット
+// モーダルが再表示されたときに入力値をクリアするために監視
 watch(() => props.show, (newVal) => {
   if (newVal) {
     deleteConfirmText.value = '';

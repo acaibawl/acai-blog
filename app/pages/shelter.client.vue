@@ -53,7 +53,6 @@ const messages: {
 }[] = reactive([]);
 
 watch(data, (newValue) => {
-  console.log(JSON.parse(newValue));
   const { name = 'system', body = '' } = JSON.parse(newValue);
   messages.push({ name, body });
 });
@@ -93,8 +92,6 @@ onUnmounted(() => {
 <template>
   <div class="chat-container">
     <h1>Twitter避難所</h1>
-    <!-- TODO: 後でstatusの表示は消す -->
-    <h2>{{ status }}</h2>
     <!-- 未ログインの場合は、名前入力フォームを表示 -->
     <div v-if="!isLoggedIn">
       <form @submit.prevent="joinChat">

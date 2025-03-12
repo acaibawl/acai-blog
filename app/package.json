@@ -17,6 +17,7 @@
     "@prisma/client": "^6.4.1",
     "@sidebase/nuxt-auth": "^0.10.0",
     "@types/formidable": "^3.4.5",
+    "@vueuse/core": "^13.0.0",
     "bcrypt": "^5.1.1",
     "dayjs": "^1.11.13",
     "formidable": "^3.5.2",

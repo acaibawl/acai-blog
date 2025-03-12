@@ -60,4 +60,9 @@ export default defineNuxtConfig({
   build: {
     transpile: ['jsonwebtoken'],
   },
+  nitro: {
+    experimental: {
+      websocket: true,
+    },
+  },
 });

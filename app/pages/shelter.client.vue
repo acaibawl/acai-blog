@@ -85,7 +85,6 @@ const sendMessage = () => {
 
 onUnmounted(() => {
   close();
-  alert('Twitter避難所を退出します');
 });
 </script>
 

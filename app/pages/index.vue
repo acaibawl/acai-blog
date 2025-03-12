@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ArticleList from '~/components/ArticleList.vue';
+import NotificationMessage from '~/components/NotificationMessage.vue';
 
 const runtimeConfig = useRuntimeConfig();
 const ogImage = `${runtimeConfig.public.baseUrl}/no-image.png`;
@@ -22,71 +23,32 @@ definePageMeta({
 
 // メッセージ状態を取得
 const notificationMessage = useNotificationMessage();
+// 通知の表示状態を管理
+const showNotification = ref(false);
 
-// ページがロードされたらメッセージを表示して消去
-// TODO: JSDOM操作をVueの仕組みに組み込んでいない
+// 通知を閉じる処理
+const handleClose = () => {
+  // 通知が閉じられたときの処理
+  showNotification.value = false;
+  notificationMessage.value = '';
+};
+
+// ページがロードされたらメッセージを表示
 onMounted(() => {
   if (notificationMessage.value) {
-    // メッセージを表示（3秒後に消える）
-    const messageElement = document.createElement('div');
-    messageElement.className = 'message-notification';
-    messageElement.textContent = notificationMessage.value;
-    document.body.appendChild(messageElement);
-
-    setTimeout(() => {
-      messageElement.classList.add('fade-out');
-      setTimeout(() => {
-        document.body.removeChild(messageElement);
-        // メッセージをクリア
-        notificationMessage.value = '';
-      }, 300);
-    }, 3000);
+    showNotification.value = true;
   }
 });
 </script>
 
 <template>
-  <ArticleList :page="1"/>
+  <div>
+    <!-- 通知メッセージコンポーネント -->
+    <NotificationMessage
+      :message="notificationMessage"
+      :show="showNotification"
+      @close="handleClose"
+    />
+    <ArticleList :page="1"/>
+  </div>
 </template>
-
-<style>
-/* メッセージ通知のスタイル */
-.message-notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 12px 24px;
-  background-color: #4caf50;
-  color: white;
-  border-radius: 4px;
-  font-weight: 500;
-  z-index: 9999;
-  animation: slide-in 0.3s ease-out;
-}
-
-.message-notification.fade-out {
-  animation: fade-out 0.3s ease-out forwards;
-}
-
-@keyframes slide-in {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fade-out {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
-</style>

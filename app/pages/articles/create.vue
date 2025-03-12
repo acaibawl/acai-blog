@@ -11,6 +11,7 @@ useHead({
 const router = useRouter();
 const errorMessage = ref<string>('');
 const { authToken } = useAuthCheck(errorMessage);
+const notificationMessage = useNotificationMessage();
 
 const handleSubmit = async (formData: any): Promise<void> => {
   try {
@@ -29,6 +30,8 @@ const handleSubmit = async (formData: any): Promise<void> => {
     }
 
     if (data.value?.id) {
+      // 成功メッセージを設定
+      notificationMessage.value = '記事を投稿しました。';
       router.push(`/articles/${data.value.id}`);
     } else {
       errorMessage.value = '記事の投稿に失敗しました。';

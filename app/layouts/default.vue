@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { JwtPayload } from '~/types/JwtPayload';
+import NotificationMessage from '~/components/NotificationMessage.vue';
 
 useHead({
   meta: [
@@ -16,6 +17,30 @@ useHead({
 const { signOut, status, data } = useAuth();
 const jwtPayload = computed<JwtPayload | null>(() => {
   return data.value ? (data.value as unknown as JwtPayload) : null;
+});
+
+// メッセージ通知関連
+const notificationMessage = useNotificationMessage();
+const showNotification = ref(false);
+
+// 通知を閉じる処理
+const handleClose = () => {
+  showNotification.value = false;
+  notificationMessage.value = '';
+};
+
+// メッセージが設定されたら表示する
+watch(() => notificationMessage.value, (newValue) => {
+  if (newValue) {
+    showNotification.value = true;
+  }
+});
+
+// 初期表示時にメッセージがあれば表示
+onMounted(() => {
+  if (notificationMessage.value) {
+    showNotification.value = true;
+  }
 });
 </script>
 
@@ -40,6 +65,13 @@ const jwtPayload = computed<JwtPayload | null>(() => {
     <footer>
       © Copyright 2025 浅井 All rights reserved.
     </footer>
+
+    <!-- 通知メッセージコンポーネント -->
+    <NotificationMessage
+      :message="notificationMessage"
+      :show="showNotification"
+      @close="handleClose"
+    />
   </div>
 </template>
 

@@ -26,6 +26,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  categories: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(['submit', 'cancel']);

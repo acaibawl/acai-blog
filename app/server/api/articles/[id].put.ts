@@ -41,6 +41,20 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    // カテゴリーIDが指定されている場合、存在確認
+    if (body.category_id !== undefined && body.category_id !== null) {
+      const category = await prisma.category.findUnique({
+        where: { id: Number(body.category_id) },
+      });
+
+      if (!category) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: '指定されたカテゴリーが存在しません',
+        });
+      }
+    }
+
     // 記事を更新
     const updatedArticle = await prisma.article.update({
       where: {
@@ -51,6 +65,7 @@ export default defineEventHandler(async (event) => {
         body: body.body,
         thumbnail_url: body.thumbnail_url,
         main_image_url: body.main_image_url,
+        category_id: body.category_id !== undefined ? Number(body.category_id) || null : undefined,
         updated_at: new Date(),
       },
     });

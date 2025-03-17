@@ -6,6 +6,9 @@ const props = defineProps<{
   page: number;
 }>();
 
+const route = useRoute();
+const categoryId = route.query.category_id ? Number(route.query.category_id) : undefined;
+
 const runtimeConfig = useRuntimeConfig();
 const ogImage = `${runtimeConfig.public.baseUrl}/no-image.png`;
 useHead({
@@ -22,8 +25,19 @@ useHead({
   ],
 });
 
-// useFetch を使って /api/articles?page=1 から記事データを取得
-const { data, error } = await useFetch<ArticlesResponse>(`/api/articles?page=${props.page}`);
+// カテゴリーIDがある場合は、そのカテゴリー情報も取得
+const { data: currentCategory } = await useFetch(
+  categoryId ? `/api/categories/${categoryId}` : null
+);
+
+// useFetch を使って記事データを取得（カテゴリーIDがある場合はフィルター）
+const { data, error } = await useFetch<ArticlesResponse>('/api/articles', {
+  query: {
+    page: props.page,
+    category_id: categoryId
+  }
+});
+
 if (error.value || !data.value) {
   console.error(error.value);
   throw createError(error.value?.data);
@@ -35,6 +49,11 @@ const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png
 
 <template>
   <div>
+    <div v-if="currentCategory" class="category-header">
+      <h1>カテゴリー: {{ currentCategory.name }}</h1>
+      <NuxtLink to="/categories" class="category-link">すべてのカテゴリーを見る</NuxtLink>
+    </div>
+
     <div class="grid">
       <template v-for="article in data?.articles" :key="article.id">
         <a :href="`/articles/${article.id}`">
@@ -44,6 +63,11 @@ const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png
             </div>
             <div class="card-content">
               <div class="card-title">{{ article.title }}</div>
+              <div v-if="article.category" class="card-category">
+                <NuxtLink :to="`/?category_id=${article.category.id}`">
+                  {{ article.category.name }}
+                </NuxtLink>
+              </div>
             </div>
             <time :datetime="dayjs(article.created_at).format('YYYY-MM-DD')">{{ new Date(article.created_at).toLocaleDateString("ja-JP")}}</time>
           </div>
@@ -59,6 +83,20 @@ const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png
 h1 {
   text-align: center;
   margin-bottom: 20px;
+}
+
+/* カテゴリーヘッダー */
+.category-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.category-link {
+  color: #3b82f6;
+  text-decoration: underline;
+  margin-top: 5px;
 }
 
 /* グリッドレイアウト */
@@ -122,10 +160,24 @@ h1 {
   margin-bottom: 10px;
 }
 
+/* カテゴリー */
+.card-category {
+  display: inline-block;
+  background-color: #f3f4f6;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.card-category a {
+  color: #4b5563;
+}
+
 .card time {
   display: block;
   text-align: right;
-  color: #bfbfbf;;
+  color: #bfbfbf;
 }
 
 a {

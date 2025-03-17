@@ -5,4 +5,5 @@ export interface ArticlesResponse {
   page: number;
   pageSize: number;
   allArticlesCount: number;
+  categoryId?: number;
 }

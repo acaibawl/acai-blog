@@ -1,123 +1,3 @@
-<template>
-  <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">カテゴリー管理</h1>
-    
-    <!-- カテゴリー作成フォーム -->
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-      <h2 class="text-xl font-semibold mb-4">新規カテゴリー作成</h2>
-      
-      <form @submit.prevent="createCategory">
-        <div class="mb-4">
-          <label for="category-name" class="block text-sm font-medium text-gray-700 mb-1">カテゴリー名</label>
-          <input
-            id="category-name"
-            v-model="newCategory"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="カテゴリー名を入力"
-            required
-          />
-        </div>
-        
-        <div class="flex items-center">
-          <button
-            type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            :disabled="isSubmitting"
-          >
-            {{ isSubmitting ? '作成中...' : '作成' }}
-          </button>
-          
-          <p v-if="createError" class="ml-4 text-red-600">{{ createError }}</p>
-          <p v-if="createSuccess" class="ml-4 text-green-600">{{ createSuccess }}</p>
-        </div>
-      </form>
-    </div>
-    
-    <!-- カテゴリー一覧 -->
-    <div class="bg-white shadow-md rounded-lg p-6">
-      <h2 class="text-xl font-semibold mb-4">カテゴリー一覧</h2>
-      
-      <div v-if="pending" class="text-center py-4">
-        <p>読み込み中...</p>
-      </div>
-      
-      <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-        <p>エラーが発生しました: {{ error.message }}</p>
-      </div>
-      
-      <div v-else-if="categories && categories.length === 0" class="text-center py-4">
-        <p>カテゴリーがありません</p>
-      </div>
-      
-      <div v-else>
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">カテゴリー名</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">記事数</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="category in categories" :key="category.id">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ category.id }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div v-if="editingId === category.id" class="flex items-center">
-                  <input
-                    v-model="editingName"
-                    type="text"
-                    class="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div v-else class="text-sm font-medium text-gray-900">{{ category.name }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ category._count.articles }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div v-if="editingId === category.id" class="flex space-x-2">
-                  <button
-                    @click="updateCategory(category.id)"
-                    class="text-blue-600 hover:text-blue-900"
-                    :disabled="isSubmitting"
-                  >
-                    保存
-                  </button>
-                  <button
-                    @click="cancelEdit"
-                    class="text-gray-600 hover:text-gray-900"
-                    :disabled="isSubmitting"
-                  >
-                    キャンセル
-                  </button>
-                </div>
-                <div v-else class="flex space-x-2">
-                  <button
-                    @click="startEdit(category)"
-                    class="text-blue-600 hover:text-blue-900"
-                  >
-                    編集
-                  </button>
-                  <button
-                    @click="deleteCategory(category)"
-                    class="text-red-600 hover:text-red-900"
-                    :disabled="category._count.articles > 0"
-                    :title="category._count.articles > 0 ? '記事が紐づいているため削除できません' : ''"
-                  >
-                    削除
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <p v-if="operationError" class="mt-4 text-red-600">{{ operationError }}</p>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 // 認証チェック
 const errorMessage = ref('');
@@ -233,3 +113,349 @@ async function deleteCategory(category) {
   }
 }
 </script> 
+
+<template>
+  <div class="admin-container">
+    <h1 class="page-title">カテゴリー管理</h1>
+    
+    <!-- カテゴリー作成フォーム -->
+    <div class="create-form">
+      <h2 class="section-title">新規カテゴリー作成</h2>
+      
+      <form @submit.prevent="createCategory">
+        <div class="form-group">
+          <label for="category-name" class="form-label">カテゴリー名</label>
+          <input
+            id="category-name"
+            v-model="newCategory"
+            type="text"
+            class="form-input"
+            placeholder="カテゴリー名を入力"
+            required
+          />
+        </div>
+        
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="submit-button"
+            :disabled="isSubmitting"
+          >
+            {{ isSubmitting ? '作成中...' : '作成' }}
+          </button>
+          
+          <p v-if="createError" class="error-text">{{ createError }}</p>
+          <p v-if="createSuccess" class="success-text">{{ createSuccess }}</p>
+        </div>
+      </form>
+    </div>
+    
+    <!-- カテゴリー一覧 -->
+    <div class="list-container">
+      <h2 class="section-title">カテゴリー一覧</h2>
+      
+      <div v-if="pending" class="loading-message">
+        <p>読み込み中...</p>
+      </div>
+      
+      <div v-else-if="error" class="error-message">
+        <p>エラーが発生しました: {{ error.message }}</p>
+      </div>
+      
+      <div v-else-if="categories && categories.length === 0" class="empty-message">
+        <p>カテゴリーがありません</p>
+      </div>
+      
+      <div v-else>
+        <table class="categories-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>カテゴリー名</th>
+              <th>記事数</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="category in categories" :key="category.id">
+              <td>{{ category.id }}</td>
+              <td>
+                <div v-if="editingId === category.id" class="edit-field">
+                  <input
+                    v-model="editingName"
+                    type="text"
+                    class="form-input"
+                  />
+                </div>
+                <div v-else class="category-name">{{ category.name }}</div>
+              </td>
+              <td>{{ category._count.articles }}</td>
+              <td>
+                <div v-if="editingId === category.id" class="action-buttons">
+                  <button
+                    @click="updateCategory(category.id)"
+                    class="save-button"
+                    :disabled="isSubmitting"
+                  >
+                    保存
+                  </button>
+                  <button
+                    @click="cancelEdit"
+                    class="cancel-button"
+                    :disabled="isSubmitting"
+                  >
+                    キャンセル
+                  </button>
+                </div>
+                <div v-else class="action-buttons">
+                  <button
+                    @click="startEdit(category)"
+                    class="edit-button"
+                  >
+                    編集
+                  </button>
+                  <button
+                    @click="deleteCategory(category)"
+                    class="delete-button"
+                    :disabled="category._count.articles > 0"
+                    :title="category._count.articles > 0 ? '記事が紐づいているため削除できません' : ''"
+                  >
+                    削除
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <p v-if="operationError" class="error-text operation-error">{{ operationError }}</p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #444;
+}
+
+.create-form {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.submit-button {
+  background: #4a90e2;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #357abd;
+}
+
+.submit-button:disabled {
+  background: #a0a0a0;
+  cursor: not-allowed;
+}
+
+.list-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.categories-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.categories-table th,
+.categories-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.categories-table th {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-button,
+.save-button,
+.cancel-button,
+.delete-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.edit-button {
+  background: #4a90e2;
+  color: white;
+}
+
+.edit-button:hover {
+  background: #357abd;
+}
+
+.save-button {
+  background: #4caf50;
+  color: white;
+}
+
+.save-button:hover:not(:disabled) {
+  background: #3d8b40;
+}
+
+.cancel-button {
+  background: #9e9e9e;
+  color: white;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background: #757575;
+}
+
+.delete-button {
+  background: #f44336;
+  color: white;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #d32f2f;
+}
+
+.delete-button:disabled {
+  background: #ffcdd2;
+  cursor: not-allowed;
+}
+
+.error-text {
+  color: #f44336;
+}
+
+.success-text {
+  color: #4caf50;
+}
+
+.operation-error {
+  margin-top: 1rem;
+}
+
+.loading-message,
+.empty-message {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.edit-field {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.category-name {
+  font-weight: 500;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .admin-container {
+    padding: 1rem;
+  }
+
+  .categories-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+}
+</style>

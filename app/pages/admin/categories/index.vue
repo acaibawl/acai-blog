@@ -120,7 +120,8 @@
 
 <script setup>
 // 認証チェック
-// 実際の実装では、ミドルウェアなどで認証チェックを行う
+const errorMessage = ref('');
+const { authToken } = useAuthCheck(errorMessage);
 
 // 状態管理
 const newCategory = ref('');
@@ -147,7 +148,10 @@ async function createCategory() {
   try {
     await $fetch('/api/categories/create', {
       method: 'POST',
-      body: { name: newCategory.value.trim() }
+      body: { name: newCategory.value.trim() },
+      headers: {
+        Authorization: `Bearer ${authToken.value}`,
+      }
     });
     
     newCategory.value = '';
@@ -188,7 +192,10 @@ async function updateCategory(id) {
   try {
     await $fetch(`/api/categories/${id}`, {
       method: 'PUT',
-      body: { name: editingName.value.trim() }
+      body: { name: editingName.value.trim() },
+      headers: {
+        Authorization: `Bearer ${authToken.value}`,
+      }
     });
     
     editingId.value = null;
@@ -214,7 +221,10 @@ async function deleteCategory(category) {
   
   try {
     await $fetch(`/api/categories/${category.id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${authToken.value}`,
+      }
     });
     
     refresh();

@@ -1,16 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import { verifyAuth } from '~/server/utils/auth';
 
 const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
-  // 認証チェック（既存の認証システムに合わせて実装）
-  // この例では簡易的に実装
-  if (!event.context.user?.isAdmin) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Unauthorized',
-    });
-  }
+  console.log('create category');
+  // 認証チェック
+  await verifyAuth(event);
 
   const body = await readBody(event);
   const { name } = body;
@@ -39,7 +35,7 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Category with this name already exists',
       });
     }
-    
+
     // その他のエラー
     throw createError({
       statusCode: 500,

@@ -1,16 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import { verifyAuth } from '~/server/utils/auth';
 
 const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
-  // 認証チェック（既存の認証システムに合わせて実装）
-  // この例では簡易的に実装
-  if (!event.context.user?.isAdmin) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Unauthorized',
-    });
-  }
+  // 認証チェック
+  await verifyAuth(event);
 
   const id = Number(event.context.params?.id);
   

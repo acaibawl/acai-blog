@@ -95,7 +95,7 @@ useHead({
       :initial-body="article?.body || ''"
       :initial-thumbnail-url="article?.thumbnail_url || ''"
       :initial-main-image-url="article?.main_image_url || ''"
-      :initial-category-id="article?.category_id || null"
+      :initial-category-id="article?.category_id"
       :submit-button-text="'更新する'"
       :is-edit-mode="true"
       :categories="categories || []"

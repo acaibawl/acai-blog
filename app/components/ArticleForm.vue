@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import ImageUploadModal from '~/components/ImageUploadModal.vue';
+import type { PropType } from 'vue';
+
+interface Category {
+  id: number;
+  name: string;
+}
 
 const props = defineProps({
   initialTitle: {
@@ -18,6 +24,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  initialCategoryId: {
+    type: Number,
+    default: null,
+  },
   submitButtonText: {
     type: String,
     default: '投稿する',
@@ -27,7 +37,7 @@ const props = defineProps({
     default: false,
   },
   categories: {
-    type: Array,
+    type: Array as PropType<Category[]>,
     default: () => [],
   },
 });
@@ -41,6 +51,7 @@ const showPreview = ref<boolean>(false);
 const showImageUploadModal = ref<boolean>(false);
 const thumbnailUrl = ref<string>(props.initialThumbnailUrl); // サムネイル画像URL
 const mainImageUrl = ref<string>(props.initialMainImageUrl); // メイン画像URL
+const categoryId = ref<number | null>(props.initialCategoryId); // カテゴリーID
 const isForThumbnail = ref<boolean>(false); // サムネイル用の画像選択モード
 const isForMainImage = ref<boolean>(false); // メイン画像用の画像選択モード
 
@@ -128,6 +139,7 @@ const handleSubmit = async (): Promise<void> => {
       body: body.value,
       thumbnail_url: thumbnailUrl.value || null,
       main_image_url: mainImageUrl.value || null,
+      category_id: categoryId.value,
     });
   } catch (error: unknown) {
     errorMessage.value = '処理に失敗しました。';
@@ -157,6 +169,10 @@ watch(() => props.initialThumbnailUrl, (newValue) => {
 watch(() => props.initialMainImageUrl, (newValue) => {
   mainImageUrl.value = newValue;
 });
+
+watch(() => props.initialCategoryId, (newValue) => {
+  categoryId.value = newValue;
+});
 </script>
 
 <template>
@@ -165,6 +181,17 @@ watch(() => props.initialMainImageUrl, (newValue) => {
       <div class="form-group">
         <label for="title" class="form-label">タイトル</label>
         <input id="title" v-model="title" type="text" required class="form-input" placeholder="記事のタイトルを入力してください" >
+      </div>
+
+      <!-- カテゴリー選択 -->
+      <div class="form-group">
+        <label for="category" class="form-label">カテゴリー</label>
+        <select id="category" v-model="categoryId" class="form-input">
+          <option :value="null">選択なし</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">
+            {{ category.name }}
+          </option>
+        </select>
       </div>
 
       <!-- 画像設定セクション -->

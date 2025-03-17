@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Category } from '@prisma/client';
 import dayjs from 'dayjs';
 import type { ArticlesResponse } from '~/types/ArticlesResponse';
 
@@ -26,16 +27,18 @@ useHead({
 });
 
 // カテゴリーIDがある場合は、そのカテゴリー情報も取得
-const { data: currentCategory } = await useFetch(
-  categoryId ? `/api/categories/${categoryId}` : null
-);
+const currentCategory = ref<Category | null>(null);
+if (categoryId) {
+  const { data } = await useFetch<Category>(`/api/categories/${categoryId}`);
+  currentCategory.value = data.value;
+}
 
 // useFetch を使って記事データを取得（カテゴリーIDがある場合はフィルター）
 const { data, error } = await useFetch<ArticlesResponse>('/api/articles', {
   query: {
     page: props.page,
-    category_id: categoryId
-  }
+    category_id: categoryId,
+  },
 });
 
 if (error.value || !data.value) {

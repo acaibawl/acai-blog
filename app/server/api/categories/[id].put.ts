@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   await verifyAuth(event);
 
   const id = Number(event.context.params?.id);
-  
+
   if (isNaN(id)) {
     throw createError({
       statusCode: 400,
@@ -49,6 +49,7 @@ export default defineEventHandler(async (event) => {
 
     return updatedCategory;
   } catch (error: any) {
+    console.error('カテゴリー更新エラー:', error);
     // 一意性制約違反のエラー
     if (error.code === 'P2002' && error.meta?.target?.includes('name')) {
       throw createError({
@@ -63,4 +64,4 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Failed to update category',
     });
   }
-}); 
+});

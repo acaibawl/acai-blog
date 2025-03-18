@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   await verifyAuth(event);
 
   const id = Number(event.context.params?.id);
-  
+
   if (isNaN(id)) {
     throw createError({
       statusCode: 400,
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   if (!existingCategory) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Category not found',
+      statusMessage: 'カテゴリーが見つかりません',
     });
   }
 
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
   if (existingCategory._count.articles > 0) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Cannot delete category with associated articles',
+      statusMessage: 'このカテゴリーに紐づく記事があるため削除できません',
     });
   }
 
@@ -47,4 +47,4 @@ export default defineEventHandler(async (event) => {
   });
 
   return { success: true };
-}); 
+});

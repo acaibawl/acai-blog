@@ -7,6 +7,12 @@ const { data: categories, pending, error } = await useFetch('/api/categories', {
 definePageMeta({
   auth: false,
 });
+useHead({
+  title: 'カテゴリー一覧',
+  meta: [
+    { hid: 'description', name: 'description', content: 'カテゴリー一覧ページです。' },
+  ],
+});
 </script>
 
 <template>

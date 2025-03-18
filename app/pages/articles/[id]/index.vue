@@ -3,8 +3,6 @@ import { marked } from 'marked';
 import dayjs from 'dayjs';
 import type { ArticleWithCategory } from '~/types/ArticleWithCategory';
 
-console.error('articles/[id].vue loaded');
-
 // ルートパラメータから記事IDを取得
 const route = useRoute();
 const router = useRouter();
@@ -113,12 +111,10 @@ const deleteArticle = async () => {
     <!-- <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }} | カテゴリ: {{ category }}</p> -->
     <p class="meta">
       {{ dayjs(data!.created_at).format('YYYY-MM-DD') }}
-      <template v-if="data!.category">
-        | カテゴリー:
-        <NuxtLink :to="`/page/1?category_id=${data!.category.id}`" class="category-link">
-          {{ data!.category.name }}
-        </NuxtLink>
-      </template>
+      | カテゴリー:
+      <NuxtLink :to="`/page/1?category_id=${data!.category.id}`" class="category-link">
+        {{ data!.category.name }}
+      </NuxtLink>
     </p>
     <img class="mainImage" :src="mainImageUrl" alt="記事のメイン画像">
     <MarkdownPreview :content="data!.body" />

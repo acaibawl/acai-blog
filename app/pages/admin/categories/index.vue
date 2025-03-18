@@ -1,4 +1,11 @@
 <script setup>
+useHead({
+  title: '管理者向けカテゴリー一覧',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+  ],
+});
+
 // 認証チェック
 const errorMessage = ref('');
 const { authToken } = useAuthCheck(errorMessage);

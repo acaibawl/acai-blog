@@ -35,8 +35,6 @@ useHead({
   ],
 });
 definePageMeta({
-  name: 'articles-id',
-  path: '/articles/:id',
   auth: false,
 });
 

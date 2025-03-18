@@ -29,7 +29,7 @@ definePageMeta({
       <NuxtLink
         v-for="category in categories"
         :key="category.id"
-        :to="`/?category_id=${category.id}`"
+        :to="`/page/1?category_id=${category.id}`"
         class="category-card"
       >
         <h2 class="category-title">{{ category.name }}</h2>

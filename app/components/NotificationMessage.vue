@@ -18,6 +18,7 @@ const closeNotification = () => {
   isFadingOut.value = true;
   // フェードアウト完了後にイベント発火
   setTimeout(() => {
+    isFadingOut.value = false;
     emit('close');
   }, 300);
 };

@@ -3,13 +3,14 @@
 const errorMessage = ref('');
 const { authToken } = useAuthCheck(errorMessage);
 
+// メッセージ状態
+const notificationMessage = useNotificationMessage();
+
 // 状態管理
 const newCategory = ref('');
 const editingId = ref(null);
 const editingName = ref('');
 const isSubmitting = ref(false);
-const createError = ref('');
-const createSuccess = ref('');
 const operationError = ref('');
 
 // カテゴリー一覧取得（記事数も含む）
@@ -21,8 +22,7 @@ const { data: categories, pending, error, refresh } = await useFetch('/api/categ
 async function createCategory() {
   if (!newCategory.value.trim()) return;
   
-  createError.value = '';
-  createSuccess.value = '';
+  operationError.value = '';
   isSubmitting.value = true;
   
   try {
@@ -35,15 +35,10 @@ async function createCategory() {
     });
     
     newCategory.value = '';
-    createSuccess.value = 'カテゴリーを作成しました';
+    notificationMessage.value = 'カテゴリーを作成しました';
     refresh();
-    
-    // 成功メッセージを3秒後に消す
-    setTimeout(() => {
-      createSuccess.value = '';
-    }, 3000);
   } catch (err) {
-    createError.value = err.data?.statusMessage || 'カテゴリーの作成に失敗しました';
+    operationError.value = err.data?.statusMessage || 'カテゴリーの作成に失敗しました';
   } finally {
     isSubmitting.value = false;
   }
@@ -79,6 +74,7 @@ async function updateCategory(id) {
     });
     
     editingId.value = null;
+    notificationMessage.value = 'カテゴリーを更新しました';
     refresh();
   } catch (err) {
     operationError.value = err.data?.statusMessage || 'カテゴリーの更新に失敗しました';
@@ -107,6 +103,7 @@ async function deleteCategory(category) {
       }
     });
     
+    notificationMessage.value = `カテゴリー「${category.name}」を削除しました`;
     refresh();
   } catch (err) {
     operationError.value = err.data?.statusMessage || 'カテゴリーの削除に失敗しました';
@@ -143,9 +140,6 @@ async function deleteCategory(category) {
           >
             {{ isSubmitting ? '作成中...' : '作成' }}
           </button>
-          
-          <p v-if="createError" class="error-text">{{ createError }}</p>
-          <p v-if="createSuccess" class="success-text">{{ createSuccess }}</p>
         </div>
       </form>
     </div>
@@ -187,7 +181,11 @@ async function deleteCategory(category) {
                     class="form-input"
                   />
                 </div>
-                <div v-else class="category-name">{{ category.name }}</div>
+                <div v-else>
+                  <NuxtLink :to="`/page/1?category_id=${category.id}`" class="category-name">
+                    {{ category.name }}
+                  </NuxtLink>
+                </div>
               </td>
               <td>{{ category._count.articles }}</td>
               <td>
@@ -406,10 +404,6 @@ async function deleteCategory(category) {
   color: #f44336;
 }
 
-.success-text {
-  color: #4caf50;
-}
-
 .operation-error {
   margin-top: 1rem;
 }
@@ -437,6 +431,12 @@ async function deleteCategory(category) {
 .category-name {
   font-weight: 500;
   color: #333;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.category-name:hover {
+  color: #4a90e2;
 }
 
 @media (max-width: 768px) {

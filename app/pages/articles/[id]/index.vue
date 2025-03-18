@@ -115,7 +115,7 @@ const deleteArticle = async () => {
       {{ dayjs(data!.created_at).format('YYYY-MM-DD') }}
       <template v-if="data!.category">
         | カテゴリー:
-        <NuxtLink :to="`/?category_id=${data!.category.id}`" class="category-link">
+        <NuxtLink :to="`/page/1?category_id=${data!.category.id}`" class="category-link">
           {{ data!.category.name }}
         </NuxtLink>
       </template>

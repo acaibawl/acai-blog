@@ -66,7 +66,7 @@ const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png
             </div>
             <div class="card-content">
               <div class="card-title">{{ article.title }}</div>
-              <div v-if="article.category" class="card-category">
+              <div class="card-category">
                 <NuxtLink :to="`/page/1?category_id=${article.category.id}`">
                   {{ article.category.name }}
                 </NuxtLink>

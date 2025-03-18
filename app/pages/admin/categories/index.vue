@@ -15,25 +15,25 @@ const operationError = ref('');
 
 // カテゴリー一覧取得（記事数も含む）
 const { data: categories, pending, error, refresh } = await useFetch('/api/categories', {
-  query: { include_count: 'true' }
+  query: { include_count: 'true' },
 });
 
 // カテゴリー作成
 async function createCategory() {
   if (!newCategory.value.trim()) return;
-  
+
   operationError.value = '';
   isSubmitting.value = true;
-  
+
   try {
     await $fetch('/api/categories/create', {
       method: 'POST',
       body: { name: newCategory.value.trim() },
       headers: {
         Authorization: `Bearer ${authToken.value}`,
-      }
+      },
     });
-    
+
     newCategory.value = '';
     notificationMessage.value = 'カテゴリーを作成しました';
     refresh();
@@ -60,19 +60,19 @@ function cancelEdit() {
 // カテゴリー更新
 async function updateCategory(id) {
   if (!editingName.value.trim()) return;
-  
+
   operationError.value = '';
   isSubmitting.value = true;
-  
+
   try {
     await $fetch(`/api/categories/${id}`, {
       method: 'PUT',
       body: { name: editingName.value.trim() },
       headers: {
         Authorization: `Bearer ${authToken.value}`,
-      }
+      },
     });
-    
+
     editingId.value = null;
     notificationMessage.value = 'カテゴリーを更新しました';
     refresh();
@@ -90,35 +90,35 @@ async function deleteCategory(category) {
     operationError.value = 'このカテゴリーに紐づく記事があるため削除できません';
     return;
   }
-  
+
   if (!confirm(`カテゴリー「${category.name}」を削除してもよろしいですか？`)) return;
-  
+
   operationError.value = '';
-  
+
   try {
     await $fetch(`/api/categories/${category.id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${authToken.value}`,
-      }
+      },
     });
-    
+
     notificationMessage.value = `カテゴリー「${category.name}」を削除しました`;
     refresh();
   } catch (err) {
     operationError.value = err.data?.statusMessage || 'カテゴリーの削除に失敗しました';
   }
 }
-</script> 
+</script>
 
 <template>
   <div class="admin-container">
     <h1 class="page-title">カテゴリー管理</h1>
-    
+
     <!-- カテゴリー作成フォーム -->
     <div class="create-form">
       <h2 class="section-title">新規カテゴリー作成</h2>
-      
+
       <form @submit.prevent="createCategory">
         <div class="form-group">
           <label for="category-name" class="form-label">カテゴリー名</label>
@@ -129,9 +129,8 @@ async function deleteCategory(category) {
             class="form-input"
             placeholder="カテゴリー名を入力"
             required
-          />
+          >
         </div>
-        
         <div class="form-actions">
           <button
             type="submit"
@@ -143,23 +142,23 @@ async function deleteCategory(category) {
         </div>
       </form>
     </div>
-    
+
     <!-- カテゴリー一覧 -->
     <div class="list-container">
       <h2 class="section-title">カテゴリー一覧</h2>
-      
+
       <div v-if="pending" class="loading-message">
         <p>読み込み中...</p>
       </div>
-      
+
       <div v-else-if="error" class="error-message">
         <p>エラーが発生しました: {{ error.message }}</p>
       </div>
-      
+
       <div v-else-if="categories && categories.length === 0" class="empty-message">
         <p>カテゴリーがありません</p>
       </div>
-      
+
       <div v-else>
         <table class="categories-table">
           <thead>
@@ -179,7 +178,7 @@ async function deleteCategory(category) {
                     v-model="editingName"
                     type="text"
                     class="form-input"
-                  />
+                  >
                 </div>
                 <div v-else>
                   <NuxtLink :to="`/page/1?category_id=${category.id}`" class="category-name">
@@ -191,32 +190,32 @@ async function deleteCategory(category) {
               <td>
                 <div v-if="editingId === category.id" class="action-buttons">
                   <button
-                    @click="updateCategory(category.id)"
-                    class="save-button"
                     :disabled="isSubmitting"
+                    class="save-button"
+                    @click="updateCategory(category.id)"
                   >
                     保存
                   </button>
                   <button
-                    @click="cancelEdit"
-                    class="cancel-button"
                     :disabled="isSubmitting"
+                    class="cancel-button"
+                    @click="cancelEdit"
                   >
                     キャンセル
                   </button>
                 </div>
                 <div v-else class="action-buttons">
                   <button
-                    @click="startEdit(category)"
                     class="edit-button"
+                    @click="startEdit(category)"
                   >
                     編集
                   </button>
                   <button
-                    @click="deleteCategory(category)"
                     class="delete-button"
                     :disabled="category._count.articles > 0"
                     :title="category._count.articles > 0 ? '記事が紐づいているため削除できません' : ''"
+                    @click="deleteCategory(category)"
                   >
                     削除
                   </button>
@@ -225,7 +224,7 @@ async function deleteCategory(category) {
             </tr>
           </tbody>
         </table>
-        
+
         <p v-if="operationError" class="error-text operation-error">{{ operationError }}</p>
       </div>
     </div>

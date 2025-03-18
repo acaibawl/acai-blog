@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { marked } from 'marked';
 import dayjs from 'dayjs';
-import type { Article } from '@prisma/client';
-
-console.error('articles/[id].vue loaded');
+import type { ArticleWithCategory } from '~/types/ArticleWithCategory';
 
 // ルートパラメータから記事IDを取得
 const route = useRoute();
@@ -13,7 +11,7 @@ const router = useRouter();
 const { status, authToken } = useAuthCheck();
 
 // APIから記事詳細データを取得する
-const { data, error } = await useFetch<Article>(`/api/articles/${route.params.id}`);
+const { data, error } = await useFetch<ArticleWithCategory>(`/api/articles/${route.params.id}`);
 if (error.value) {
   console.error(error.value);
   throw createError(error.value?.data);
@@ -37,8 +35,6 @@ useHead({
   ],
 });
 definePageMeta({
-  name: 'articles-id',
-  path: '/articles/:id',
   auth: false,
 });
 
@@ -111,7 +107,13 @@ const deleteArticle = async () => {
       </div>
     </div>
     <!-- <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }} | カテゴリ: {{ category }}</p> -->
-    <p class="meta">{{ dayjs(data!.created_at).format('YYYY-MM-DD') }}</p>
+    <p class="meta">
+      {{ dayjs(data!.created_at).format('YYYY-MM-DD') }}
+      | カテゴリー:
+      <NuxtLink :to="`/page/1?category_id=${data!.category.id}`" class="category-link">
+        {{ data!.category.name }}
+      </NuxtLink>
+    </p>
     <img class="mainImage" :src="mainImageUrl" alt="記事のメイン画像">
     <MarkdownPreview :content="data!.body" />
 
@@ -134,7 +136,7 @@ const deleteArticle = async () => {
         class="line-share-button"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" alt="LINEでシェア">
-          <path d="M19.365 9.89c.50 0 .907.41.907.91s-.407.91-.907.91H17.59v1.306h1.775c.5 0 .907.41.907.91s-.407.91-.907.91H16.59c-.5 0-.908-.41-.908-.91V9.89c0-.5.407-.91.908-.91h2.775zm-5.443 0c.5 0 .908.41.908.91v4.046c0 .5-.41.91-.908.91s-.908-.41-.908-.91V10.8c0-.5.407-.91.908-.91zm-3.775 0c.5 0 .907.41.907.91v4.046c0 .5-.407.91-.907.91s-.907-.41-.907-.91V10.8c0-.5.407-.91.907-.91zm-2.75.82h-1.8v1.157h1.8c.5 0 .908.41.908.91s-.407.91-.908.91h-1.8v1.157h1.8c.5 0 .908.41.908.91s-.407.91-.908.91H5.59c-.5 0-.908-.41-.908-.91V9.89c0-.5.407-.91.908-.91h2.807c.5 0 .907.41.907.91s-.407.91-.907.91zM24 10.8c0-4.61-4.62-8.366-10.3-8.366S3.4 6.19 3.4 10.8c0 4.143 3.674 7.614 8.65 8.274.337.072.796.222.912.51.104.26.068.668.033.929l-.148.89c-.044.264-.21 1.032.896.562.55-.232 8.017-4.72 10.941-8.087.803-.818 1.316-1.65 1.316-3.078z"/>
+          <path d="M19.365 9.89c.50 0 .907.41.907.91s-.407.91-.907.91H17.59v1.306h1.775c.5 0 .907.41.907.91s-.407.91-.907.91h-1.8v1.157h1.8c.5 0 .908.41.908.91s-.407.91-.908.91H5.59c-.5 0-.908-.41-.908-.91V9.89c0-.5.407-.91.908-.91h2.807c.5 0 .907.41.907.91s-.407.91-.907.91zM24 10.8c0-4.61-4.62-8.366-10.3-8.366S3.4 6.19 3.4 10.8c0 4.143 3.674 7.614 8.65 8.274.337.072.796.222.912.51.104.26.068.668.033.929l-.148.89c-.044.264-.21 1.032.896.562.55-.232 8.017-4.72 10.941-8.087.803-.818 1.316-1.65 1.316-3.078z"/>
         </svg>
         <span>LINEでシェア</span>
       </a>
@@ -218,9 +220,17 @@ article h2 {
 }
 
 .meta {
-    font-size: 14px;
-    color: #888;
-    margin-bottom: 10px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.category-link {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.category-link:hover {
+    text-decoration: underline;
 }
 
 article .mainImage {

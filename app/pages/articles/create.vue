@@ -13,6 +13,9 @@ const errorMessage = ref<string>('');
 const { authToken } = useAuthCheck(errorMessage);
 const notificationMessage = useNotificationMessage();
 
+// カテゴリー一覧を取得
+const { data: categories } = await useFetch('/api/categories');
+
 const handleSubmit = async (formData: any): Promise<void> => {
   try {
     // 記事を投稿するAPIを呼び出す
@@ -50,10 +53,11 @@ const handleCancel = (): void => {
 </script>
 
 <template>
-  <div class="create-article-container">
+  <div class="container">
     <h1 class="page-title">記事投稿</h1>
     <ArticleForm
-      submit-button-text="投稿する"
+      :submit-button-text="'投稿する'"
+      :categories="categories || []"
       @submit="handleSubmit"
       @cancel="handleCancel"
     />
@@ -62,7 +66,7 @@ const handleCancel = (): void => {
 </template>
 
 <style scoped>
-.create-article-container {
+.container {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;

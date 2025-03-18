@@ -15,6 +15,9 @@ export default defineEventHandler(async (event) => {
   try {
     const article = await prisma.article.findUnique({
       where: { id },
+      include: {
+        category: true, // カテゴリー情報も含める
+      },
     });
 
     // articleが見つからない場合はエラーを返す

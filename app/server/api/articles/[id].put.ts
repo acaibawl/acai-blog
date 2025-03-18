@@ -1,7 +1,17 @@
 import { PrismaClient } from '@prisma/client';
 import { verifyAuth } from '~/server/utils/auth';
+import { z } from 'zod';
 
 const prisma = new PrismaClient();
+
+// 更新用のスキーマを定義
+const updateArticleSchema = z.object({
+  title: z.string().min(1, { message: 'タイトルは必須です' }),
+  body: z.string().min(1, { message: '内容は必須です' }),
+  thumbnail_url: z.string().nullable().optional(),
+  main_image_url: z.string().nullable().optional(),
+  category_id: z.number({ required_error: 'カテゴリーIDは必須です' }),
+});
 
 export default defineEventHandler(async (event) => {
   try {
@@ -30,14 +40,31 @@ export default defineEventHandler(async (event) => {
         statusMessage: '記事が見つかりません',
       });
     }
+
     // リクエストボディを取得
-    const body = await readBody(event);
+    const requestBody = await readBody(event);
 
     // バリデーション
-    if (!body.title || !body.body) {
+    const validationResult = updateArticleSchema.safeParse(requestBody);
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.errors.map(err => err.message).join(', ');
       throw createError({
         statusCode: 400,
-        statusMessage: 'タイトルと本文は必須です',
+        statusMessage: errorMessages,
+      });
+    }
+
+    const { title, body, thumbnail_url, main_image_url, category_id } = validationResult.data;
+
+    // カテゴリーの存在確認
+    const category = await prisma.category.findUnique({
+      where: { id: category_id },
+    });
+
+    if (!category) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '指定されたカテゴリーが存在しません',
       });
     }
 
@@ -47,10 +74,11 @@ export default defineEventHandler(async (event) => {
         id: Number(id),
       },
       data: {
-        title: body.title,
-        body: body.body,
-        thumbnail_url: body.thumbnail_url,
-        main_image_url: body.main_image_url,
+        title,
+        body,
+        thumbnail_url,
+        main_image_url,
+        category_id,
         updated_at: new Date(),
       },
     });

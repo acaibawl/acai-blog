@@ -9,6 +9,7 @@ const articleSchema = z.object({
   body: z.string().min(1, { message: '内容は必須です' }),
   thumbnail_url: z.string().nullable().optional(), // サムネイル画像URL（任意）
   main_image_url: z.string().nullable().optional(), // メイン画像URL（任意）
+  category_id: z.number({ required_error: 'カテゴリーIDは必須です' }), // カテゴリーIDを必須に変更
 });
 
 export default defineEventHandler(async (event) => {
@@ -28,10 +29,22 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const { title, body: content, thumbnail_url, main_image_url } = validationResult.data;
+    const { title, body: content, thumbnail_url, main_image_url, category_id } = validationResult.data;
 
     // 記事の登録
     const prisma = new PrismaClient();
+
+    // カテゴリーの存在確認（必須）
+    const category = await prisma.category.findUnique({
+      where: { id: category_id },
+    });
+
+    if (!category) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '指定されたカテゴリーが存在しません',
+      });
+    }
 
     // データオブジェクトを作成
     const articleData = {
@@ -39,6 +52,7 @@ export default defineEventHandler(async (event) => {
       body: content,
       thumbnail_url: thumbnail_url || null,
       main_image_url: main_image_url || null,
+      category_id,
     };
 
     const article = await prisma.article.create({

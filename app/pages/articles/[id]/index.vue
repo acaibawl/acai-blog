@@ -33,6 +33,12 @@ useHead({
     { hid: 'twitter:description', name: 'twitter:description', content: description },
     { hid: 'twitter:image', name: 'twitter:image', content: ogImage },
   ],
+  script: [
+    {
+      src: 'https://platform.twitter.com/widgets.js',
+      async: true,
+    },
+  ],
 });
 definePageMeta({
   auth: false,
@@ -122,7 +128,7 @@ const deleteArticle = async () => {
         :href="`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${data!.title}｜浅井ブログ`)}&url=${encodeURIComponent(`${runtimeConfig.public.baseUrl}/articles/${route.params.id}`)}`"
         target="_blank"
         rel="nofollow noopener noreferrer"
-        class="twitter-share-button"
+        class="twit-share-button"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" alt="Xでシェア">
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -246,7 +252,8 @@ article .mainImage {
     gap: 10px;
 }
 
-.twitter-share-button,
+/* クラス名がtwitter-share-buttonだと、https://platform.twitter.com/widgets.jsの処理に巻き込まれて表示がバグるのでクラス名修正 */
+.twit-share-button,
 .line-share-button {
     display: inline-flex;
     align-items: center;
@@ -258,12 +265,12 @@ article .mainImage {
     transition: background-color 0.3s;
 }
 
-.twitter-share-button {
+.twit-share-button {
     background-color: #000;
     color: #fff;
 }
 
-.twitter-share-button:hover {
+.twit-share-button:hover {
     background-color: #333;
 }
 
@@ -276,7 +283,7 @@ article .mainImage {
     background-color: #05a648;
 }
 
-.twitter-share-button svg,
+.twit-share-button svg,
 .line-share-button svg {
     width: 18px;
     height: 18px;

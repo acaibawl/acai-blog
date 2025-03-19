@@ -6,4 +6,5 @@ export interface ArticlesResponse {
   pageSize: number;
   allArticlesCount: number;
   categoryId?: number;
+  searchKeyword?: string;
 }

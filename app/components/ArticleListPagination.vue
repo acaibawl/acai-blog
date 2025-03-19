@@ -6,15 +6,24 @@ const props = defineProps<{
 
 const route = useRoute();
 const categoryId = route.query.category_id;
+const keyword = route.query.keyword;
 
 const allPageCount = Math.floor(((props.allArticlesCount - 1) / 20) + 1);
 
-// カテゴリーIDがある場合はクエリパラメータを付与
+// ページネーションリンクを生成（カテゴリーIDと検索キーワードを維持）
 const getPageLink = (pageNumber: number) => {
+  const query = new URLSearchParams();
+
   if (categoryId) {
-    return `/page/${pageNumber}?category_id=${categoryId}`;
+    query.append('category_id', categoryId.toString());
   }
-  return `/page/${pageNumber}`;
+
+  if (keyword) {
+    query.append('keyword', keyword.toString());
+  }
+
+  const queryString = query.toString();
+  return `/page/${pageNumber}${queryString ? `?${queryString}` : ''}`;
 };
 </script>
 

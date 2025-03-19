@@ -1,6 +1,13 @@
+import type { Category } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+export type CategoryWithCount = Category & {
+  _count: {
+    articles: number;
+  };
+};
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);

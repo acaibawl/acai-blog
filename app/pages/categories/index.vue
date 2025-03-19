@@ -1,6 +1,8 @@
-<script setup>
+<script setup lang="ts">
+import type { CategoryWithCount } from '~/server/api/categories/index.get';
+
 // カテゴリー一覧を取得（記事数も含む）
-const { data: categories, pending, error } = await useFetch('/api/categories', {
+const { data: categories, pending, error } = await useFetch<CategoryWithCount[]>('/api/categories', {
   query: { include_count: 'true' },
 });
 

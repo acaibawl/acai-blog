@@ -13,15 +13,15 @@ const allPageCount = Math.floor(((props.allArticlesCount - 1) / 20) + 1);
 // ページネーションリンクを生成（カテゴリーIDと検索キーワードを維持）
 const getPageLink = (pageNumber: number) => {
   const query = new URLSearchParams();
-  
+
   if (categoryId) {
     query.append('category_id', categoryId.toString());
   }
-  
+
   if (keyword) {
     query.append('keyword', keyword.toString());
   }
-  
+
   const queryString = query.toString();
   return `/page/${pageNumber}${queryString ? `?${queryString}` : ''}`;
 };

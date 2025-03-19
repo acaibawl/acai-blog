@@ -148,6 +148,10 @@ const thumbnailUrl = (url: string | null) => url ? url : `${origin}/no-image.png
         検索をクリア
       </button>
     </div>
+    <!-- 検索キーワードがない場合は全記事表示のメッセージを表示 -->
+    <div v-else-if="!isLoading && articleData" class="search-info">
+      <p>{{ currentCategory ? `「${currentCategory.name}」カテゴリーの` : '' }}全記事を表示しています: {{ articleData.allArticlesCount }}件</p>
+    </div>
 
     <!-- カテゴリー情報 -->
     <div v-if="currentCategory" class="category-header">
